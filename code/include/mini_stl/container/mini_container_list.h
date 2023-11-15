@@ -1,5 +1,5 @@
-#ifndef MINI_LIST_H
-#define MINI_LIST_H
+#ifndef MINI_CONTAINER_LIST_H
+#define MINI_CONTAINER_LIST_H
 
 #include <iostream>
 

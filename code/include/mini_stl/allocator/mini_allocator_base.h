@@ -1,5 +1,5 @@
-#ifndef MINI_ALLOC_BASE_H
-#define MINI_ALLOC_BASE_H
+#ifndef MINI_ALLOCATOR_BASE_H
+#define MINI_ALLOCATOR_BASE_H
 
 #include <climits>  // for UNIT_MAX
 #include <cstddef>  // for ptrdiff_t, size_t

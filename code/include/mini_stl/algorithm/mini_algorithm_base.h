@@ -1,5 +1,5 @@
-#ifndef MINI_ALGO_BASE_H
-#define MINI_ALGO_BASE_H
+#ifndef MINI_ALGORITHM_BASE_H
+#define MINI_ALGORITHM_BASE_H
 
 namespace mini::algo {
 

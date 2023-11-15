@@ -1,7 +1,5 @@
-#ifndef MINI_ALLOC_H
-#define MINI_ALLOC_H
-
-#include "mini_stl/allocator/mini_alloc_base.h"
+#ifndef MINI_ALLOCATOR_H
+#define MINI_ALLOCATOR_H
 
 #if 0
 #include <new>
@@ -12,6 +10,8 @@
     std::cerr << "out of memory" << std::endl; \
     exit(1)
 #endif
+
+// #include "mini_stl/allocator/mini_allocator_base.h"
 
 #include <memory>
 #include <type_traits>

@@ -1,8 +1,8 @@
 #include "mini_stl/test/mini_unittest.h"
 
-#include "mini_stl/algorithm/mini_algo_base.h"
+#include "mini_stl/algorithm/mini_algorithm_base.h"
 #include "mini_stl/container/mini_container_list.h"
-#include "mini_stl/iterator/mini_iter_list.h"
+#include "mini_stl/iterator/mini_iterator_list.h"
 
 using namespace std;
 

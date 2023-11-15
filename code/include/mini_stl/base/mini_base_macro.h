@@ -1,5 +1,5 @@
-#ifndef MINI_MACRO_H
-#define MINI_MACRO_H
+#ifndef MINI_BASE_MACRO_H
+#define MINI_BASE_MACRO_H
 
 /**
  * @brief Indicates the function/variable is not in use within the code
