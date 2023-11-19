@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-namespace mini::iterator {
+namespace mini::container {
 
 template<typename T>
 class ListItem {
@@ -67,6 +67,6 @@ private:
     long size_ = 0;
 };
 
-}  // namespace mini::iterator
+}  // namespace mini::container
 
 #endif

@@ -1,5 +1,5 @@
-#ifndef MINI_ALLOCATOR_H
-#define MINI_ALLOCATOR_H
+#ifndef MINI_MEMORY_ALLOC_H
+#define MINI_MEMORY_ALLOC_H
 
 #if 0
 #include <new>
@@ -11,10 +11,7 @@
     exit(1)
 #endif
 
-// #include "mini_stl/allocator/mini_allocator_base.h"
-
-#include <memory>
-#include <type_traits>
+#include <cstdlib>
 
 namespace mini::memory {
 
@@ -22,16 +19,20 @@ namespace mini::memory {
  * @brief 1st level allocator
  * @attention Use C's malloc(), free() and realloc() to do memory allocation
  * @attention A mechanism like C++ new-handler (i.e. set_new_handler()) is implemented.
- *            Can't directly use C++ new handler, which requires ::operator new
- * @attention It's user's responsibility to set a out-of-memory handler
+ *            Can't directly use C++ new-handler mechanism, which requires ::operator new
+ * @attention It's user's responsibility to set a oom(out-of-memory) handler
+ * @attention Generally slower than default alloc discussed later
  * @tparam inst
  */
 template<int inst>
 class __malloc_alloc_template {
 private:
+    // user-specific allocation handler when out-of-memory
     static void* oom_malloc(size_t);
     static void* oom_realloc(void*, size_t);
-    static void (*__malloc_alloc_oom_handler)();
+
+    // function pointer that returns void and takes no paramters
+    static void (*__malloc_alloc_oom_handler)();  // user-specific oom handler
 
 public:
     static void* allocate(size_t n)
@@ -45,7 +46,7 @@ public:
 
     static void deallocate(void* ptr, size_t /* n */) { free(ptr); }
 
-    static void reallocate(void* ptr, size_t /* old_size */, size_t new_size)
+    static void* reallocate(void* ptr, size_t /* old_size */, size_t new_size)
     {
         void* result = realloc(ptr, new_size);
         if (result == 0) {
@@ -54,30 +55,32 @@ public:
         return result;
     }
 
+    // Simulate C++'s set_new_handler(). Using this API, we can specify custom out-of-memory handler
     static void (*set_malloc_handler(void (*func)()))()
     {
         void (*old_func)() = __malloc_alloc_oom_handler;
         __malloc_alloc_oom_handler = func;
-        return old_func;
+        return (old_func);
     }
 };
 
-// set handler to nullptr
+// handler defaults to nullptr, for client side to set
 template<int inst>
 void (*__malloc_alloc_template<inst>::__malloc_alloc_oom_handler)() = 0;
 
+// call user specific oom handler, then use malloc to allocate memory of size n
 template<int inst>
 void* __malloc_alloc_template<inst>::oom_malloc(size_t n)
 {
     void (*my_handler)();
     void* result;
 
-    for (;;) {  // forever loop
+    for (;;) {  // infinite loop
         my_handler = __malloc_alloc_oom_handler;
         if (my_handler == 0) {  // check if my_handler is set or not
             __THROW_BAD_ALLOC;
         }
-        (*my_handler)();     // caller custom out-of-memory handler
+        (*my_handler)();     // caller's custom out-of-memory handler
         result = malloc(n);  // try allocate memory
         if (result) {
             return result;
@@ -85,6 +88,7 @@ void* __malloc_alloc_template<inst>::oom_malloc(size_t n)
     }
 }
 
+// call user specific oom handler, then use realloc to allocate memory of size n again
 template<int inst>
 void* __malloc_alloc_template<inst>::oom_realloc(void* ptr, size_t n)
 {
@@ -104,22 +108,32 @@ void* __malloc_alloc_template<inst>::oom_realloc(void* ptr, size_t n)
     }
 }
 
-// directly set 'inst' to 0
+// directly set 'inst' to 0: this non-type template paramter is not used in our case
 using malloc_alloc = __malloc_alloc_template<0>;
 
 /**
- * Sub allocator
-*/
-enum { __ALIGN = 8 };
-enum { __MAX_BYTES = 128 };
-enum { __NFREELISTS = __MAX_BYTES / __ALIGN };
-
+ * @brief Sub/Second-level allocator
+ * @attention Reduce fragments when allocating small memory blocks
+ *            by using memory pool techniques to reduce overhead
+ * @attention Consider measures to take when memory is not enough
+ *
+ * 16 free lists(linked list) of different size are implemented to form a memory pool.
+ * If the requested memory block size is larger than 128 bytes, first-level
+ * allocator is called instead. In case of oom, oom handler of first-level
+ * allocator is invoked.
+ */
 template<bool threads, int inst>
 class __default_alloc_template {
+public:
+    enum { __ALIGN = 8 };
+    enum { __MAX_BYTES = 128 };
+    enum { __NFREELISTS = __MAX_BYTES / __ALIGN };
+
 private:
     // round up number of bytes to the next multiple of 8
     static size_t ROUND_UP(size_t bytes) { return (bytes + __ALIGN - 1) & ~(__ALIGN - 1); }
 
+    // Save memory space, different purpose when using different field
     union obj {
         union obj* free_list_link;
         char client_data[1];
@@ -152,7 +166,7 @@ char* __default_alloc_template<threads, inst>::end_free = 0;
 template<bool threads, int inst>
 size_t __default_alloc_template<threads, inst>::heap_size = 0;
 template<bool threads, int inst>
-__default_alloc_template<threads, inst>::obj* volatile __default_alloc_template<threads,
+typename __default_alloc_template<threads, inst>::obj* volatile __default_alloc_template<threads,
     inst>::free_list[__NFREELISTS] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 // static member functions definition
@@ -207,7 +221,7 @@ void* __default_alloc_template<threads, inst>::refill(size_t n)
     obj *current_obj, *next_obj;
     int i;
 
-    size_t n_objs = 20;  // default value: get 20 new nodes (blocks)
+    int n_objs = 20;  // default value: get 20 new nodes (blocks)
     // call chunk_alloc(), try to get n_objs of block to be new nodes of free list
     char* chunk = chunk_alloc(n, n_objs);
 
@@ -292,15 +306,23 @@ char* __default_alloc_template<threads, inst>::chunk_alloc(size_t n, int& n_objs
     }
 }
 
-// Set 2nd level allocator as 'alloc'
+#ifdef __USE_MALLOC
+// Set alloc as malloc
+typedef __malloc_alloc_template<0> malloc_alloc;
+typedef malloc_alloc alloc;
+#else
+// Set alloc as second-level allocator
 #define __NODE_ALLOCATOR_THREADS false
 typedef __default_alloc_template<__NODE_ALLOCATOR_THREADS, 0> alloc;
+#endif
 
 /**
- * @brief A wrapper for alloc, so that it satisfied with STL standards
+ * @brief A thin allocator wrapper(1st/2nd level allocator) to satisfy STL standard interface
  *
  * @tparam T value type
  * @tparam Alloc 1st level allocator or sub-allocator
+ *
+ * @attention Each static method is just a simple forwarding functions to actual method of Alloc
  */
 template<typename T, typename Alloc>
 class simple_alloc {
@@ -315,106 +337,6 @@ public:
     }
     static void deallocate(T* p) { Alloc::deallocate(p, sizeof(T)); }
 };
-
-template<typename T, typename Alloc = alloc>
-class vector {
-public:
-    typedef T value_type;
-
-protected:
-    typedef simple_alloc<value_type, Alloc> data_allocator;
-};
-
-//////////////////////////////////////////////////////////////////////////////////////
-// Global utility functions for memory allocation
-// uninitialized_copy(),uninitialized_fill(),uninitialized_fill_n()
-//////////////////////////////////////////////////////////////////////////////////////
-
-// POD type
-template<class ForwardIterator, class Size, class T>
-inline ForwardIterator __uninitialized_fill_n_aux(
-    ForwardIterator first, Size n, const T& x, std::true_type::value_type)
-// ForwardIterator first, Size n, const T& x, __true_type)  // TODO: define __true_type
-{
-    return fill_n(first, n, x);
-}
-
-// non-POD type
-template<class ForwardIterator, class Size, class T>
-inline ForwardIterator __uninitialized_fill_n_aux(
-    ForwardIterator first, Size n, const T& x, std::false_type::value_type)
-// ForwardIterator first, Size n, const T& x, __true_type)  // TODO: define __true_type
-{
-    // TODO: exception handling is skipped here
-    ForwardIterator cur = first;
-    for (; n > 0; --n, ++cur) {
-        _construct(&*cur, x);
-    }
-    return cur;
-}
-
-template<typename ForwardIterator, typename Size, typename T, typename T1>
-inline ForwardIterator __uninitialized_fill_n(ForwardIterator first, Size n, const T& x, T1*)
-{
-    // // Implementation from the book:
-    // typedef typename __type_traits<T1>::is_POD_type is_POD;
-    // return __uninitialized_fill_n_aux(first, n, x, is_POD());
-
-    // Using type_traits library
-    return __uninitialized_fill_n_aux(first, n, x, std::is_pod_v<T1>);
-}
-
-/**
- * @brief uninitialized_fill_n()
- * @param first place where we want to initialize
- * @param n     size of space we want to initialize
- * @param x     initial value
- */
-template<typename ForwardIterator, typename Size, typename T>
-inline ForwardIterator uninitialized_fill_n(ForwardIterator first, Size n, const T& x)
-{
-    // // Implementation from the book:
-    // return __uninitialized_fill_n(first, n, x, value_type(first));  // TODO: define value_type
-
-    return __uninitialized_fill_n(first, n, x, decltype(first));
-}
-
-template<typename InputIterator, typename ForwardIterator>
-inline ForwardIterator __uninitialized_copy_aux(
-    InputIterator first, InputIterator last, ForwardIterator result, std::false_type::value_type)
-{
-    // TODO: exception handling is skipped here
-    ForwardIterator cur = result;
-    // TODO: when will first equals last???
-    for (; first != last; ++first, ++cur) {
-        _construct(&*cur, *first);
-    }
-}
-
-template<typename InputIterator, typename ForwardIterator>
-inline ForwardIterator __uninitialized_copy_aux(
-    InputIterator first, InputIterator last, ForwardIterator result, std::true_type::value_type)
-{
-    return std::copy(first, last, result);
-}
-
-template<typename InputIterator, typename ForwardIterator, typename T>
-inline ForwardIterator __uninitialized_copy(
-    InputIterator first, InputIterator last, ForwardIterator result, T*)
-{
-    return __uninitialized_copy_aux(first, last, result, std::is_pod_v<T>);
-}
-
-/**
- * @brief uninitialized_copy()
- * @param
- */
-template<typename InputIterator, typename ForwardIterator>
-inline ForwardIterator uninitialized_copy(
-    InputIterator first, InputIterator last, ForwardIterator result)
-{
-    return __uninitialized_copy(first, last, result, decltype(result));
-}
 
 }  // namespace mini::memory
 
