@@ -5,6 +5,10 @@ set(CMAKE_CXX_COMPILER g++)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+# (Necessary) Add the right definitions and flags for compiler,
+# providing debugging feature for executable
+set(CMAKE_BUILD_TYPE Debug)
+
 # add_compile_options(-Wall -Wextra -Werror)
 
 include(cmake/mini_build_library.cmake)

@@ -125,9 +125,15 @@ using malloc_alloc = __malloc_alloc_template<0>;
 template<bool threads, int inst>
 class __default_alloc_template {
 public:
-    enum { __ALIGN = 8 };
-    enum { __MAX_BYTES = 128 };
-    enum { __NFREELISTS = __MAX_BYTES / __ALIGN };
+    enum { __ALIGN = 8 };                           // each block size should be a multiple of 8
+    enum { __MAX_BYTES = 128 };                     // size of each block in the 16th free-list
+    enum { __NFREELISTS = __MAX_BYTES / __ALIGN };  // number of free-lists (16)
+
+public:
+    // typical interfaces of an allocator
+    static void* allocate(size_t n);
+    static void deallocate(void* p, size_t n);
+    static void* reallocate(void* p, size_t old_size, size_t new_size);
 
 private:
     // round up number of bytes to the next multiple of 8
@@ -140,22 +146,19 @@ private:
     };
     // 16 free-lists
     static obj* volatile free_list[__NFREELISTS];
+    // freelist index start from 1 - 16
     static size_t FREELSIT_INDEX(size_t bytes) { return (bytes + __ALIGN - 1) / __ALIGN - 1; }
 
     // return an obj of size n, prob add a small block of size n to the free_list
     static void* refill(size_t n);
-    // allocate a chunk of space for a number of ('n_objs') of block of size 'size'
+    // allocate a chunk of space for a number of ('n_objs') block of size 'size'
     static char* chunk_alloc(size_t size, int& n_objs);
 
+private:
     // chunk allocation states
     static char* start_free;  // memory pool's starting position
     static char* end_free;    // memory pool's starting position
     static size_t heap_size;
-
-    // typical interfaces of an allocator
-    static void* allocate(size_t n);
-    static void deallocate(void* p, size_t n);
-    static void* reallocate(void* p, size_t old_size, size_t new_size);
 };
 
 // Initialize static data member values
@@ -189,8 +192,7 @@ void* __default_alloc_template<threads, inst>::allocate(size_t n)
         return r;
     }
     // adjust free list
-    // *my_free_list = result->free_list_link;  // from book
-    result = result->free_list_link;  // easier readability?
+    *my_free_list = result->free_list_link;
     return result;
 }
 
@@ -209,7 +211,7 @@ void __default_alloc_template<threads, inst>::deallocate(void* p, size_t n)
     // Adjust current free list to recycle the block
     // 1. link q to current pos of free list
     q->free_list_link = (*my_free_list);
-    // 2. point current pos of free list q
+    // 2. set free-list point to q
     (*my_free_list) = q;
 }
 
@@ -225,16 +227,19 @@ void* __default_alloc_template<threads, inst>::refill(size_t n)
     // call chunk_alloc(), try to get n_objs of block to be new nodes of free list
     char* chunk = chunk_alloc(n, n_objs);
 
-    if (n_objs == 1) {  // no new nodes need to create in free list
+    if (n_objs == 1) {  // only get 1 block, return this block to user directly
         return chunk;
     }
-    // adjust free list to contains more than one nodes
+    // adjust free list to accept new nodes from chunk
     my_free_list = free_list + FREELSIT_INDEX(n);
 
+    // first block is returned to user for his use,
+    // so free_list should point to the next block
     result = (obj*)chunk;                          // this block is returned to user
     *my_free_list = next_obj = (obj*)(chunk + n);  // point free list to next empty block
 
-    for (int i = 1;; i++) {  // starting from index 1, since 0 is returned to user
+    // connect each node from chunk to create a linked list
+    for (int i = 1;; i++) {  // starting from index 1, since block 0-th is returned to user
         current_obj = next_obj;
         next_obj = (obj*)((char*)current_obj + n);  // cast a member ptr to union ptr
         if (i == n_objs - 1) {                      // last block
@@ -300,8 +305,13 @@ char* __default_alloc_template<threads, inst>::chunk_alloc(size_t n, int& n_objs
             // exception may be thrown, or ease the problem of memory shortage
             start_free = (char*)malloc_alloc::allocate(bytes_to_get);
         }
+
+        // now enough space is found, update heap_size and start, end info
         heap_size += bytes_to_get;
         end_free = start_free + bytes_to_get;
+
+        // Call itself to correct the value of n_objs since
+        // 'bytes_to_get' may not be large enough for n_obj number of blocks of size n
         return chunk_alloc(n, n_objs);
     }
 }
@@ -326,6 +336,16 @@ typedef __default_alloc_template<__NODE_ALLOCATOR_THREADS, 0> alloc;
  */
 template<typename T, typename Alloc>
 class simple_alloc {
+public:
+    // necessary associated types
+    typedef T value_type;
+    typedef T* pointer;
+    typedef const T* const_pointer;
+    typedef T& reference;
+    typedef const T& const_reference;
+    typedef size_t size_type;
+    typedef ptrdiff_t difference_type;
+
 public:
     static T* allocate(size_t n) { return 0 == n ? 0 : (T*)Alloc::allocate(n * sizeof(T)); }
     static T* allocate(void) { return (T*)Alloc::allocate(sizeof(T)); }

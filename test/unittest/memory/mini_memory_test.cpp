@@ -36,8 +36,34 @@ TEST(mini_memory_defalloc, nonprimitive_type)
 
 TEST(mini_memory_alloc, primitive_type)
 {
-    using value_type = int;
     using allocator_type = mini::memory::alloc;
 
-    // std::vector<value_type, mini::memory::simple_alloc<value_type, allocator_type>> vec;
+    {
+        using value_type = uint32_t;
+        using allocator = mini::memory::simple_alloc<value_type, allocator_type>;
+
+        // A chunk of consecutive memory is allocated from heap, so memory addresses returned
+        // in a few subsequent allocation calls should be consecutive.
+        auto ptr1 = allocator::allocate();
+        auto ptr2 = allocator::allocate();
+        auto ptr3 = allocator::allocate();
+
+        // Pointer difference is 2, means 8 bytes.
+        // 'int' type only requires 4 bytes, but internally allocator align this size to 8
+        EXPECT_EQ((ptr2 - ptr1), 2);
+        EXPECT_EQ((ptr3 - ptr2), 2);
+    }
+
+    {
+        using value_type = __uint128_t;
+        using allocator = mini::memory::simple_alloc<value_type, allocator_type>;
+
+        auto ptr1 = allocator::allocate();
+        auto ptr2 = allocator::allocate();
+        auto ptr3 = allocator::allocate();
+
+        // Pointer difference is 1, means 16 bytes
+        EXPECT_EQ((ptr2 - ptr1), 1);
+        EXPECT_EQ((ptr3 - ptr2), 1);
+    }
 }
