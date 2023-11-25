@@ -117,7 +117,8 @@ template<class ForwardIterator, class Size, class T>
 inline ForwardIterator __uninitialized_fill_n_aux(
     ForwardIterator first, Size n, const T& x, mini::type_traits::__true_type)
 {
-    return fill_n(first, n, x);
+    return std::fill_n(first, n, x);
+    // return fill_n(first, n, x);  // TODO: to be implemented in chapter 6
 }
 
 // non-POD type
@@ -139,12 +140,12 @@ inline ForwardIterator __uninitialized_fill_n_aux(
 template<typename ForwardIterator, typename Size, typename T, typename T1>
 inline ForwardIterator __uninitialized_fill_n(ForwardIterator first, Size n, const T& x, T1*)
 {
-    typedef typename mini::type_traits<T1>::is_POD_type is_POD;
+    typedef typename mini::type_traits::__type_traits<T1>::is_POD_type is_POD;
     return __uninitialized_fill_n_aux(first, n, x, is_POD());
 }
 
 /**
- * @brief uninitialized_fill_n()
+ * @brief uninitialized_fill_n() Fill an uninitialized space with n values
  * @param first place where we want to initialize
  * @param n     size of space we want to initialize
  * @param x     initial value

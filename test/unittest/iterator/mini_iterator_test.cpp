@@ -4,9 +4,7 @@
 #include "mini_stl/container/mini_container_list.h"
 #include "mini_stl/iterator/mini_iterator_list.h"
 
-using namespace std;
-
-TEST(mini_iterator, basic)
+TEST(mini_iterator_test, basic)
 {
     using value_type = int;
     using item_type = mini::container::ListItem<value_type>;
@@ -28,18 +26,10 @@ TEST(mini_iterator, basic)
     iterator_type iter;  // defaults ctor to null
 
     iter = find_func(begin, end, 3);
-    // iter = min::algo::find<>(begin, end, 3);
-    if (iter == end) {
-        cout << "not found" << endl;
-    } else {
-        cout << "val " << iter->value() << ": found" << endl;
-    }
+    EXPECT_NE(iter, end);
     EXPECT_EQ(iter->value(), 3);
 
     iter = find_func(begin, end, 7);
-    if (iter == end) {
-        cout << "not found" << endl;
-    } else {
-        cout << "val " << iter->value() << ": found" << endl;
-    }
+    EXPECT_EQ(iter, end);
+    EXPECT_EQ(iter, iterator_type{});
 }

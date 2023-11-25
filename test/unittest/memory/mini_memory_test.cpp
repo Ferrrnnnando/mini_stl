@@ -2,41 +2,40 @@
 #include "mini_stl/memory/mini_memory_defalloc.h"
 #include "mini_stl/test/mini_unittest.h"
 
-#include <iostream>
+#include <algorithm>
 #include <vector>
 
-TEST(mini_memory_defalloc, primitive_type)
+TEST(mini_memory_defalloc_test, vec_primitive_type_defalloc)
 {
     int arr[] = {1, 2, 3};
     size_t len = sizeof(arr) / sizeof(int);
     std::vector<int, mini::memory::allocator<int>> vec(arr, arr + len);
-    for (auto e : vec) {
-        std::cout << e << std::endl;
-    }
+
+    std::vector ans{1, 2, 3};
+    EXPECT_TRUE(std::equal(vec.begin(), vec.end(), ans.begin()));
 }
 
-TEST(mini_memory_defalloc, nonprimitive_type)
+TEST(mini_memory_defalloc_test, vec_nonprimitive_type_defalloc)
 {
     struct A {
-        int a_;
-        char b_;
         A(int a, char b)
             : a_(a)
             , b_(b)
-        {
-            std::cout << "A's ctor" << std::endl;
-        }
+        {}
+        bool operator==(const A& rhs) { return a_ == rhs.a_ && b_ == rhs.b_; }
+
+        int a_;
+        char b_;
     };
     std::vector<A, mini::memory::allocator<A>> vec2;
     vec2.emplace_back(1, 'a');
-    for (auto& e : vec2) {
-        std::cout << e.a_ << " " << e.b_ << std::endl;
-    }
+    EXPECT_TRUE(vec2.back() == A(1, 'a'));
 }
 
-TEST(mini_memory_alloc, primitive_type)
+TEST(mini_memory_alloc_test, primitive_type)
 {
-    using allocator_type = mini::memory::alloc;
+    typedef mini::memory::__default_alloc_template<false, 1> alloc;
+    using allocator_type = alloc;
 
     {
         using value_type = uint32_t;

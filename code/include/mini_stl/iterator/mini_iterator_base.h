@@ -70,7 +70,7 @@ struct iterator_traits<const T*> {
 template<typename Iterator>
 inline typename iterator_traits<Iterator>::iterator_category iterator_category(const Iterator&)
 {
-    typedef iterator_traits<Iterator>::iterator_category category;
+    typedef typename iterator_traits<Iterator>::iterator_category category;
     return category();
 }
 
@@ -140,7 +140,7 @@ inline void __advance(BidirectionalIterator& iter, Distance n, bidirectional_ite
 }
 
 template<typename RandomAccessIterator, typename Distance>
-inline void __advance(RandomAccessIterator& iter, Distance n, bidirectional_iterator_tag)
+inline void __advance(RandomAccessIterator& iter, Distance n, random_access_iterator_tag)
 {
     iter += n;
 }
@@ -148,7 +148,6 @@ inline void __advance(RandomAccessIterator& iter, Distance n, bidirectional_iter
 template<typename InputIterator, typename Distance>
 inline void advance(InputIterator& iter, Distance n)
 {
-    typedef typename iterator_traits<Iterator>::iterator_category category;
     __advance(iter, n, iterator_category(iter));
 }
 ////// advance function end //////
