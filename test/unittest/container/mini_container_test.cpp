@@ -2,11 +2,37 @@
 
 #include "mini_stl/container/mini_container_vector.h"
 
-TEST(mini_container_test, vector)
+#include <algorithm>
+
+TEST(mini_container_test, vector_primive)
 {
     using value_type = int;
     using allocator = mini::memory::alloc;
     using vector = mini::container::vector<value_type, allocator>;
+
+    {
+        vector vec;
+    }
+
+    {
+        // Different vector constructors
+        vector vec(2);
+        EXPECT_EQ(vec.size(), 2);
+        EXPECT_EQ(vec.capacity(), 2);
+
+        vector vec2(2, 10);
+        EXPECT_EQ(vec.size(), 2);
+        EXPECT_EQ(vec.capacity(), 2);
+        EXPECT_EQ(vec2[0], 10);
+        EXPECT_EQ(vec2[1], 10);
+
+        // out-of-range access
+        try {
+            vec2.at(2);
+        } catch (const std::exception& e) {
+            EXPECT_STREQ(e.what(), "mini::container::vector: out_of_range failure: n >= size()");
+        }
+    }
 
     {
         // Add elements one by one
@@ -14,6 +40,7 @@ TEST(mini_container_test, vector)
         EXPECT_EQ(vec.size(), 0);
 
         vec.push_back(1);
+        EXPECT_EQ(vec[0], 1);
         EXPECT_EQ(vec.size(), 1);
         EXPECT_EQ(vec.capacity(), 1);
 
@@ -69,5 +96,49 @@ TEST(mini_container_test, vector)
         EXPECT_EQ(vec[0], 0);
         EXPECT_EQ(vec[1], 3);
         EXPECT_EQ(vec[2], 4);
+    }
+
+    {
+        vector vec(2, 3);
+        int arr[] = {3, 3};
+        auto data_ptr = vec.data();
+        EXPECT_TRUE(std::equal(std::begin(arr), std::end(arr), data_ptr));
+    }
+
+    {
+        // reserve test #1
+        vector vec;
+        EXPECT_EQ(vec.size(), 0);
+        EXPECT_EQ(vec.capacity(), 0);
+        vec.reserve(0);   // does nothing
+        vec.reserve(10);  // capacity increased to 10
+        EXPECT_EQ(vec.size(), 0);
+        EXPECT_EQ(vec.capacity(), 10);
+
+        // reserve test #2
+        vector vec2(2, 2);
+        EXPECT_EQ(vec2.size(), 2);
+        EXPECT_EQ(vec2.capacity(), 2);
+        vec2.reserve(1);  // does nothing
+        vec2.reserve(3);  // capacity increased to 3
+        EXPECT_EQ(vec2.size(), 2);
+        EXPECT_EQ(vec2.capacity(), 3);
+        EXPECT_EQ(vec2[0], 2);
+        EXPECT_EQ(vec2[1], 2);
+    }
+}
+
+TEST(mini_container_test, vector_nonprimive)
+{
+    struct A {
+        ~A() { std::cout << "A's dtor" << std::endl; }
+    };
+
+    using value_type = A;
+    using allocator = mini::memory::alloc;
+    using vector = mini::container::vector<value_type, allocator>;
+
+    {
+        vector vec;
     }
 }

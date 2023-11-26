@@ -1,6 +1,7 @@
-#include "mini_stl/memory/mini_memory_alloc.h"
-#include "mini_stl/memory/mini_memory_defalloc.h"
 #include "mini_stl/test/mini_unittest.h"
+
+#include "mini_stl/memory/mini_memory.h"
+#include "mini_stl/memory/mini_memory_defalloc.h"
 
 #include <algorithm>
 #include <vector>
@@ -36,6 +37,14 @@ TEST(mini_memory_alloc_test, primitive_type)
 {
     typedef mini::memory::__default_alloc_template<false, 1> alloc;
     using allocator_type = alloc;
+
+    {
+        using value_type = uint32_t;
+        using allocator = mini::memory::simple_alloc<value_type, allocator_type>;
+
+        // Avoid deallocating nullptr
+        allocator::deallocate(NULL);
+    }
 
     {
         using value_type = uint32_t;

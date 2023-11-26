@@ -32,7 +32,7 @@ template<typename ForwardIterator>
 inline void __destroy_aux(
     ForwardIterator first, ForwardIterator last, mini::type_traits::__false_type)
 {
-    for (; first <= last; ++first) {
+    for (; first < last; ++first) {
         destroy(&(*first));
     }
 }

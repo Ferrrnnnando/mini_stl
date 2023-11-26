@@ -11,16 +11,18 @@ public:
     typedef T value_type;
     typedef value_type* pointer;
     typedef value_type* iterator;
+    typedef const value_type* const_iterator;
     typedef value_type& reference;
     typedef const T& const_reference;
     typedef size_t size_type;
     typedef ptrdiff_t difference_type;
+    typedef mini::memory::simple_alloc<value_type, Alloc> allocator_type;
 
 public:
     vector()
-        : start(0)
-        , finish(0)
-        , end_of_storage(0)
+        : begin_(0)
+        , end_(0)
+        , end_of_storage_(0)
     {}
 
     explicit vector(size_type n) { fill_initialize(n, value_type()); }
@@ -31,34 +33,89 @@ public:
 
     vector(long n, const_reference value) { fill_initialize(n, value); }
 
-    ~vector()
-    {
-        memory::destroy(start, finish);
-        deallocate();
-    }
+    ~vector() { destroy_and_deallocate(); }
 
 public:
-    iterator begin() { return start; }
-
-    iterator end() { return finish; }
-
+    // Element access
     reference front() { return *begin(); }
 
     reference back() { return *(end() - 1); }
 
+    reference operator[](size_type n) { return *(begin() + n); }
+
+    reference at(size_type n)
+    {
+        if (n >= size()) {
+            throw std::out_of_range("mini::container::vector: out_of_range failure: n >= size()");
+        }
+        return *(begin() + n);
+    }
+
+    pointer data() { return &(*begin()); }
+
+    // iterators
+    iterator begin() { return begin_; }
+
+    iterator end() { return end_; }
+
+    // capacity
     size_type size() { return size_type(end() - begin()); }
 
-    size_type capacity() { return size_type(end_of_storage - begin()); }
+    size_type capacity() { return size_type(end_of_storage_ - begin()); }
 
-    bool empty() { return start == finish; }
+    bool empty() const noexcept { return begin_ == end_; }
 
-    reference operator[](size_type n) { return *(begin() + n); }
+    void reserve(size_type new_cap)
+    {
+        if (new_cap <= capacity()) {
+            return;
+        }
+
+        if (new_cap > max_size()) {
+            throw std::length_error("new_cap > max_size()");
+        }
+
+        iterator new_start = data_allocator::allocate(new_cap);
+        iterator new_finish = new_start;
+
+        // For a single statement like this: probably won't need a try catch to rollback
+        try {
+            new_finish = memory::uninitialized_copy(begin_, end_, new_start);
+        } catch (const std::exception& e) {
+            // rollback to original
+            memory::destroy(new_start, new_finish);
+            data_allocator::deallocate(new_start, new_cap);
+            std::cerr << e.what() << '\n';
+            throw;
+        }
+
+        destroy_and_deallocate();
+        begin_ = new_start;
+        end_ = new_finish;
+        end_of_storage_ = new_start + new_cap;
+    }
+
+    /**
+     * @brief Return maximum number of elements the container is able to hold due to system or
+     *        library implementation limitations.
+     *
+     * @return size_type
+     */
+    size_type max_size() const noexcept { return std::numeric_limits<difference_type>::max(); }
+
+    // // TODO:
+    // void shrink_to_fit(){
+    //     vector<T, Alloc>(begin(), end(), end()).swap(*this);
+    // }
+
+    // Modifiers
+    void clear() { erase(begin(), end()); }
 
     void push_back(const_reference value)
     {
-        if (finish != end_of_storage) {  // no need to allocate space
-            memory::construct(finish, value);
-            ++finish;
+        if (end_ != end_of_storage_) {  // no need to allocate space
+            memory::construct(end_, value);
+            ++end_;
         } else {
             insert_aux(end(), value);
         }
@@ -66,8 +123,8 @@ public:
 
     void pop_back()
     {
-        --finish;
-        memory::destroy(finish);
+        --end_;
+        memory::destroy(end_);
     }
 
     iterator erase(iterator pos)
@@ -77,8 +134,8 @@ public:
             // memory::copy(pos + 1, end(), pos);  // TODO: global copy() to be implemented later
             std::copy(pos + 1, end(), pos);
         }
-        --finish;
-        memory::destroy(finish);
+        --end_;
+        memory::destroy(end_);
         return pos;
     }
 
@@ -91,17 +148,27 @@ public:
      */
     iterator erase(iterator first, iterator last)
     {
-        // iterator i = memory::copy(last, finish, first);  // TODO: global copy() to be implemented later
-        iterator i = std::copy(last, finish, first);
-        memory::destroy(i, finish);
-        finish = finish - (last - first);
+        // iterator i = memory::copy(last, end_, first);  // TODO: global copy() to be implemented later
+        iterator i = std::copy(last, end_, first);
+        memory::destroy(i, end_);
+        end_ = end_ - (last - first);
         return first;
     }
+
+    // TODO
+    iterator insert(const_iterator pos, const_reference value) { return NULL; }
+
+    // // TODO
+    // template<typename InputIt>
+    // iterator insert(const_iterator pos, InputIt first, InputIt last)
+    // {
+    //     return NULL;
+    // }
 
     /**
      * @brief Starting at position 'pos', insert 'n' number of elements with value 'value'
      *
-     * @param pos Position to start insertion
+     * @param pos Position to begin_ insertion
      * @param n Number of elements to insert
      * @param value Value of element to insert
      *
@@ -115,28 +182,28 @@ public:
             return;
         }
 
-        if (size_type(end_of_storage - finish) >= n) {  // reserved space enough for insertion
-            const size_type num_elements_after = finish - pos;
-            iterator old_finish = finish;
+        if (size_type(end_of_storage_ - end_) >= n) {  // reserved space enough for insertion
+            const size_type num_elements_after = end_ - pos;
+            iterator old_finish = end_;
             if (num_elements_after > n) {  // number of elements after insert pos > n
                 // |--- n ---|
                 // |-- elements after--|--------> unintialized
-                // pos               finish
+                // pos               end_
 
-                // copy last n element of current vector at position finish
-                memory::uninitialized_copy(finish - n, finish, finish);
-                finish += n;
+                // copy last n element of current vector at position end_
+                memory::uninitialized_copy(end_ - n, end_, end_);
+                end_ += n;
                 std::copy_backward(pos, old_finish - n, old_finish);
                 std::fill(pos, pos + n, value);
             } else {  // number of existing elements after insert pos <= n
                 // |---       n         ---|
                 // |-- elements after--|--------> unintialized
-                // pos               finish
+                // pos               end_
 
-                memory::uninitialized_fill_n(finish, n - num_elements_after, value);
-                finish += (n - num_elements_after);
-                memory::uninitialized_copy(pos, old_finish, finish);
-                finish += num_elements_after;
+                memory::uninitialized_fill_n(end_, n - num_elements_after, value);
+                end_ += (n - num_elements_after);
+                memory::uninitialized_copy(pos, old_finish, end_);
+                end_ += num_elements_after;
                 std::fill(pos, old_finish, value);
             }
         } else {  // reserved space less than number of new elements going to insert
@@ -148,9 +215,9 @@ public:
             iterator new_finish = new_start;
 
             try {
-                new_finish = memory::uninitialized_copy(start, pos, new_start);
+                new_finish = memory::uninitialized_copy(begin_, pos, new_start);
                 new_finish = memory::uninitialized_fill_n(new_finish, n, value);
-                new_finish = memory::uninitialized_copy(pos, finish, new_finish);
+                new_finish = memory::uninitialized_copy(pos, end_, new_finish);
             } catch (const std::exception& e) {
                 /// failure: rollback
                 memory::destroy(new_start, new_finish);
@@ -159,13 +226,10 @@ public:
                 throw;
             }
 
-            // commit success: destroy old memory
-            memory::destroy(start, finish);
-            deallocate();
-
-            start = new_start;
-            finish = new_finish;
-            end_of_storage = new_start + len;
+            destroy_and_deallocate();
+            begin_ = new_start;
+            end_ = new_finish;
+            end_of_storage_ = new_start + len;
         }
     }
 
@@ -179,7 +243,18 @@ public:
         }
     }
 
-    void clear() { erase(begin(), end()); }
+    // TODO: Verify correctness
+    void swap(vector<T, Alloc>& rhs)
+    {
+        // TODO: relace std::swap
+        std::swap(begin_, rhs.begin_);
+        std::swap(end_, rhs.end_);
+        std::swap(end_of_storage_, rhs.end_of_storage_);
+    }
+
+    // TODO: support C++11 features
+    // emplace
+    // emplace_back
 
 protected:
     /**
@@ -191,12 +266,12 @@ protected:
     void insert_aux(iterator pos, const_reference value)
     {
         // Have reserved space: not yet reached capacity
-        if (finish != end_of_storage) {
+        if (end_ != end_of_storage_) {
             // construct an element at the end having same value as the last element
-            memory::construct(finish, *(finish - 1));
-            ++finish;
+            memory::construct(end_, *(end_ - 1));
+            ++end_;
             // shift backward all elements starting from insert position
-            std::copy_backward(pos, finish - 2, finish - 1);
+            std::copy_backward(pos, end_ - 2, end_ - 1);
             *pos = value;
         } else {
             // No reserved space available
@@ -209,10 +284,10 @@ protected:
             iterator new_finish = new_start;
 
             try {  // copy data from original memory space to new memory space
-                new_finish = memory::uninitialized_copy(start, pos, new_start);
+                new_finish = memory::uninitialized_copy(begin_, pos, new_start);
                 memory::construct(new_finish, value);
                 ++new_finish;
-                new_finish = memory::uninitialized_copy(pos, finish, new_finish);
+                new_finish = memory::uninitialized_copy(pos, end_, new_finish);
             } catch (...) {
                 // commit or rollback semantics
                 memory::destroy(new_start, new_finish);
@@ -221,28 +296,20 @@ protected:
             }
 
             // destroy and free original memory
-            memory::destroy(begin(), end());
-            deallocate();
+            destroy_and_deallocate();
 
             // update internal iterators to new position
-            start = new_start;
-            finish = new_finish;
-            end_of_storage = new_start + len;
-        }
-    }
-
-    void deallocate()
-    {
-        if (start) {
-            data_allocator::deallocate(start, end_of_storage - start);
+            begin_ = new_start;
+            end_ = new_finish;
+            end_of_storage_ = new_start + len;
         }
     }
 
     void fill_initialize(size_type n, const_reference value)
     {
-        start = allocate_and_fill(n, value);
-        finish = start + n;
-        end_of_storage = finish;
+        begin_ = allocate_and_fill(n, value);
+        end_ = begin_ + n;
+        end_of_storage_ = end_;
     }
 
     iterator allocate_and_fill(size_type n, const_reference value)
@@ -252,11 +319,26 @@ protected:
         return res;
     }
 
+    void destroy_and_deallocate()
+    {
+        destroy();
+        deallocate();
+    }
+
+    void destroy() { memory::destroy(begin(), end()); }
+
+    void deallocate()
+    {
+        if (begin_) {
+            data_allocator::deallocate(begin_, end_of_storage_ - begin_);
+        }
+    }
+
 protected:
-    typedef mini::memory::simple_alloc<value_type, Alloc> data_allocator;
-    iterator start;           // position of first element
-    iterator finish;          // position after the last element
-    iterator end_of_storage;  // capacity of vector(include reserved but not used spaces)
+    typedef allocator_type data_allocator;
+    iterator begin_;           // position of first element
+    iterator end_;             // position after the last element
+    iterator end_of_storage_;  // capacity of vector(include reserved but not used spaces)
 };
 
 }  // namespace mini::container

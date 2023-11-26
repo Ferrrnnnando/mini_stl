@@ -199,6 +199,9 @@ void* __default_alloc_template<threads, inst>::allocate(size_t n)
 template<bool threads, int inst>
 void __default_alloc_template<threads, inst>::deallocate(void* p, size_t n)
 {
+    if (!p) {
+        return;
+    }
     obj* q = (obj*)p;  // avoid modifying value of p (the address)
     if (n > (size_t)__MAX_BYTES) {
         malloc_alloc::deallocate(p, n);
@@ -351,6 +354,9 @@ public:
     static T* allocate(void) { return (T*)Alloc::allocate(sizeof(T)); }
     static void deallocate(T* p, size_t n)
     {
+        if (!p) {
+            return;
+        }
         if (n != 0) {
             Alloc::deallocate(p, n * sizeof(T));
         }

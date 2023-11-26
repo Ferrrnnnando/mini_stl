@@ -67,7 +67,7 @@ inline char* uninitialized_copy(const char* first, const char* last, char* resul
 inline wchar_t* uninitialized_copy(const wchar_t* first, const wchar_t* last, wchar_t* result)
 {
     std::memmove(result, first, sizeof(wchar_t) * (last - first));
-    return result + sizeof(wchar_t) * (last - first);
+    return result + (last - first);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
