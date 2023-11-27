@@ -6,7 +6,7 @@
 
 #include <new>  // include placement new
 
-namespace mini::memory {
+namespace mini::mem {
 
 template<typename T1, typename T2>
 inline void construct(T1* ptr, const T2& value)
@@ -55,6 +55,6 @@ inline void destroy(ForwardIterator first, ForwardIterator last)
 inline void destroy(char*, char*) {}
 inline void destroy(wchar_t*, wchar_t*) {}
 
-}  // namespace mini::memory
+}  // namespace mini::mem
 
 #endif

@@ -7,7 +7,7 @@
 #include <iostream>
 #include <new>  // for placement new
 
-namespace mini::memory {
+namespace mini::mem {
 
 template<typename T>
 inline T* _allocate(ptrdiff_t size, T*)
@@ -90,6 +90,6 @@ public:
     size_type max_size() const { return size_type(UINT_MAX / sizeof(T)); }
 };
 
-}  // namespace mini::memory
+}  // namespace mini::mem
 
 #endif

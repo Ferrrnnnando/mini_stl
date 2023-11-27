@@ -4,7 +4,7 @@
 #include "mini_stl/iterator/mini_iterator_list.h"
 #include "mini_stl/memory/mini_memory.h"
 
-namespace mini::container {
+namespace mini::ctnr {
 
 /**
  * @brief A circular doubly-linked list.
@@ -12,7 +12,7 @@ namespace mini::container {
  * @tparam T value type
  * @tparam Alloc data allocator
  */
-template<typename T, typename Alloc = memory::alloc>
+template<typename T, typename Alloc = mem::alloc>
 class List {
 protected:
     typedef iter::__list_node<T> list_node;
@@ -44,6 +44,6 @@ protected:
     link_type node_;
 };
 
-}  // namespace mini::container
+}  // namespace mini::ctnr
 
 #endif

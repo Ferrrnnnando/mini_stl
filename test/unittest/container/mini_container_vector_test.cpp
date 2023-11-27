@@ -7,8 +7,8 @@
 TEST(mini_container_vector_test, primitive_types)
 {
     using value_type = int;
-    using allocator = mini::memory::alloc;
-    using vector = mini::container::vector<value_type, allocator>;
+    using allocator = mini::mem::alloc;
+    using vector = mini::ctnr::vector<value_type, allocator>;
 
     {
         vector vec;
@@ -30,7 +30,7 @@ TEST(mini_container_vector_test, primitive_types)
         try {
             vec2.at(2);
         } catch (const std::exception& e) {
-            EXPECT_STREQ(e.what(), "mini::container::vector: out_of_range failure: n >= size()");
+            EXPECT_STREQ(e.what(), "mini::ctnr::vector: out_of_range failure: n >= size()");
         }
     }
 
@@ -135,8 +135,8 @@ TEST(mini_container_vector_test, nonprimive_types)
     };
 
     using value_type = A;
-    using allocator = mini::memory::alloc;
-    using vector = mini::container::vector<value_type, allocator>;
+    using allocator = mini::mem::alloc;
+    using vector = mini::ctnr::vector<value_type, allocator>;
 
     {
         vector vec;

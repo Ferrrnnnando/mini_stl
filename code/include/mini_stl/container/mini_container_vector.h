@@ -3,9 +3,9 @@
 
 #include "mini_stl/memory/mini_memory.h"
 
-namespace mini::container {
+namespace mini::ctnr {
 
-template<typename T, typename Alloc = mini::memory::alloc>
+template<typename T, typename Alloc = mini::mem::alloc>
 class vector {
 public:
     typedef T value_type;
@@ -16,7 +16,7 @@ public:
     typedef const T& const_reference;
     typedef size_t size_type;
     typedef ptrdiff_t difference_type;
-    typedef mini::memory::simple_alloc<value_type, Alloc> allocator_type;
+    typedef mini::mem::simple_alloc<value_type, Alloc> allocator_type;
 
 public:
     vector()
@@ -46,7 +46,7 @@ public:
     reference at(size_type n)
     {
         if (n >= size()) {
-            throw std::out_of_range("mini::container::vector: out_of_range failure: n >= size()");
+            throw std::out_of_range("mini::ctnr::vector: out_of_range failure: n >= size()");
         }
         return *(begin() + n);
     }
@@ -80,10 +80,10 @@ public:
 
         // For a single statement like this: probably won't need a try catch to rollback
         try {
-            new_finish = memory::uninitialized_copy(begin_, end_, new_start);
+            new_finish = mem::uninitialized_copy(begin_, end_, new_start);
         } catch (const std::exception& e) {
             // rollback to original
-            memory::destroy(new_start, new_finish);
+            mem::destroy(new_start, new_finish);
             data_allocator::deallocate(new_start, new_cap);
             std::cerr << e.what() << '\n';
             throw;
@@ -114,7 +114,7 @@ public:
     void push_back(const_reference value)
     {
         if (end_ != end_of_storage_) {  // no need to allocate space
-            memory::construct(end_, value);
+            mem::construct(end_, value);
             ++end_;
         } else {
             insert_aux(end(), value);
@@ -124,18 +124,18 @@ public:
     void pop_back()
     {
         --end_;
-        memory::destroy(end_);
+        mem::destroy(end_);
     }
 
     iterator erase(iterator pos)
     {
         // remove non-tail elements: move all elements behind it to front
         if (pos + 1 != end()) {
-            // memory::copy(pos + 1, end(), pos);  // TODO: global copy() to be implemented later
+            // mem::copy(pos + 1, end(), pos);  // TODO: global copy() to be implemented later
             std::copy(pos + 1, end(), pos);
         }
         --end_;
-        memory::destroy(end_);
+        mem::destroy(end_);
         return pos;
     }
 
@@ -148,9 +148,9 @@ public:
      */
     iterator erase(iterator first, iterator last)
     {
-        // iterator i = memory::copy(last, end_, first);  // TODO: global copy() to be implemented later
+        // iterator i = mem::copy(last, end_, first);  // TODO: global copy() to be implemented later
         iterator i = std::copy(last, end_, first);
-        memory::destroy(i, end_);
+        mem::destroy(i, end_);
         end_ = end_ - (last - first);
         return first;
     }
@@ -191,7 +191,7 @@ public:
                 // pos               end_
 
                 // copy last n element of current vector at position end_
-                memory::uninitialized_copy(end_ - n, end_, end_);
+                mem::uninitialized_copy(end_ - n, end_, end_);
                 end_ += n;
                 std::copy_backward(pos, old_finish - n, old_finish);
                 std::fill(pos, pos + n, value);
@@ -200,9 +200,9 @@ public:
                 // |-- elements after--|--------> unintialized
                 // pos               end_
 
-                memory::uninitialized_fill_n(end_, n - num_elements_after, value);
+                mem::uninitialized_fill_n(end_, n - num_elements_after, value);
                 end_ += (n - num_elements_after);
-                memory::uninitialized_copy(pos, old_finish, end_);
+                mem::uninitialized_copy(pos, old_finish, end_);
                 end_ += num_elements_after;
                 std::fill(pos, old_finish, value);
             }
@@ -215,12 +215,12 @@ public:
             iterator new_finish = new_start;
 
             try {
-                new_finish = memory::uninitialized_copy(begin_, pos, new_start);
-                new_finish = memory::uninitialized_fill_n(new_finish, n, value);
-                new_finish = memory::uninitialized_copy(pos, end_, new_finish);
+                new_finish = mem::uninitialized_copy(begin_, pos, new_start);
+                new_finish = mem::uninitialized_fill_n(new_finish, n, value);
+                new_finish = mem::uninitialized_copy(pos, end_, new_finish);
             } catch (const std::exception& e) {
                 /// failure: rollback
-                memory::destroy(new_start, new_finish);
+                mem::destroy(new_start, new_finish);
                 data_allocator::deallocate(new_start, len);
                 std::cerr << e.what() << '\n';
                 throw;
@@ -268,7 +268,7 @@ protected:
         // Have reserved space: not yet reached capacity
         if (end_ != end_of_storage_) {
             // construct an element at the end having same value as the last element
-            memory::construct(end_, *(end_ - 1));
+            mem::construct(end_, *(end_ - 1));
             ++end_;
             // shift backward all elements starting from insert position
             std::copy_backward(pos, end_ - 2, end_ - 1);
@@ -284,13 +284,13 @@ protected:
             iterator new_finish = new_start;
 
             try {  // copy data from original memory space to new memory space
-                new_finish = memory::uninitialized_copy(begin_, pos, new_start);
-                memory::construct(new_finish, value);
+                new_finish = mem::uninitialized_copy(begin_, pos, new_start);
+                mem::construct(new_finish, value);
                 ++new_finish;
-                new_finish = memory::uninitialized_copy(pos, end_, new_finish);
+                new_finish = mem::uninitialized_copy(pos, end_, new_finish);
             } catch (...) {
                 // commit or rollback semantics
-                memory::destroy(new_start, new_finish);
+                mem::destroy(new_start, new_finish);
                 data_allocator::deallocate(new_start, len);
                 throw;
             }
@@ -315,7 +315,7 @@ protected:
     iterator allocate_and_fill(size_type n, const_reference value)
     {
         iterator res = data_allocator::allocate(n);
-        memory::uninitialized_fill_n(res, n, value);
+        mem::uninitialized_fill_n(res, n, value);
         return res;
     }
 
@@ -325,7 +325,7 @@ protected:
         deallocate();
     }
 
-    void destroy() { memory::destroy(begin(), end()); }
+    void destroy() { mem::destroy(begin(), end()); }
 
     void deallocate()
     {
@@ -341,6 +341,6 @@ protected:
     iterator end_of_storage_;  // capacity of vector(include reserved but not used spaces)
 };
 
-}  // namespace mini::container
+}  // namespace mini::ctnr
 
 #endif

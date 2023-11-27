@@ -13,7 +13,7 @@
 
 #include <cstdlib>
 
-namespace mini::memory {
+namespace mini::mem {
 
 /**
  * @brief 1st level allocator
@@ -364,6 +364,6 @@ public:
     static void deallocate(T* p) { Alloc::deallocate(p, sizeof(T)); }
 };
 
-}  // namespace mini::memory
+}  // namespace mini::mem
 
 #endif

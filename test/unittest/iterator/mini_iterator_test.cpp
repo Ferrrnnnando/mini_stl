@@ -7,8 +7,8 @@
 TEST(mini_iterator_test_toy, basic)
 {
     using value_type = int;
-    using item_type = mini::container::ListItem<value_type>;
-    using group_type = mini::container::List<value_type>;
+    using item_type = mini::ctnr::ListItem<value_type>;
+    using group_type = mini::ctnr::List<value_type>;
     using iterator_type = mini::iter::ListIter<item_type>;
     auto find_func = mini::algo::find<iterator_type, value_type>;
 

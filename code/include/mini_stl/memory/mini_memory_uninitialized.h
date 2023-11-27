@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <cstring>
 
-namespace mini::memory {
+namespace mini::mem {
 
 //////////////////////////////////////////////////////////////////////////////////////
 // uninitialized_copy()
@@ -156,6 +156,6 @@ inline ForwardIterator uninitialized_fill_n(ForwardIterator first, Size n, const
     return __uninitialized_fill_n(first, n, x, mini::iter::value_type(first));
 }
 
-}  // namespace mini::memory
+}  // namespace mini::mem
 
 #endif
