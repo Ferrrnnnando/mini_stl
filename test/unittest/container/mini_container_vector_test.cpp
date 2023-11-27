@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-TEST(mini_container_test, vector_primive)
+TEST(mini_container_vector_test, primitive_types)
 {
     using value_type = int;
     using allocator = mini::memory::alloc;
@@ -128,7 +128,7 @@ TEST(mini_container_test, vector_primive)
     }
 }
 
-TEST(mini_container_test, vector_nonprimive)
+TEST(mini_container_vector_test, nonprimive_types)
 {
     struct A {
         ~A() { std::cout << "A's dtor" << std::endl; }

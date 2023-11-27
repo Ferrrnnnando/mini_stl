@@ -48,7 +48,7 @@ inline void __destroy(ForwardIterator first, ForwardIterator last, T*)
 template<typename ForwardIterator>
 inline void destroy(ForwardIterator first, ForwardIterator last)
 {
-    __destroy(first, last, mini::iterator::value_type(first));
+    __destroy(first, last, mini::iter::value_type(first));
 }
 
 // Specilized template for char* and wchar*

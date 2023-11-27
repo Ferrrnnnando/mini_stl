@@ -3,7 +3,7 @@
 
 #include <cstddef>
 
-namespace mini::iterator {
+namespace mini::iter {
 
 /**
  * @brief Five iterator categories
@@ -109,7 +109,7 @@ inline typename iterator_traits<RandomAccessIterator>::difference_type __distanc
 }
 
 template<typename InputIterator>
-inline typename iterator_traits<InputIterator>::difference_type __distance(
+inline typename iterator_traits<InputIterator>::difference_type distance(
     InputIterator first, InputIterator last)
 {
     return __distance(first, last, iterator_category(first));
@@ -152,6 +152,6 @@ inline void advance(InputIterator& iter, Distance n)
 }
 ////// advance function end //////
 
-}  // namespace mini::iterator
+}  // namespace mini::iter
 
 #endif

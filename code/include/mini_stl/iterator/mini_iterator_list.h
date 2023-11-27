@@ -1,45 +1,80 @@
 #ifndef MINI_ITERATOR_LIST_H
 #define MINI_ITERATOR_LIST_H
 
-#include "mini_stl/container/mini_container_list.h"
+#include "mini_stl/iterator/mini_iterator_base.h"
 
-namespace mini::iterator {
+namespace mini::iter {
 
-template<typename Item>
-struct ListIter {
-    using value_type = Item;
-    using pointer_type = value_type*;
-    using reference_type = value_type&;
+/**
+ * @brief List node
+ *
+ * @attention Elements of doubly-linked list, bidirectional iterator is needed
+ * @tparam T Data type
+ */
+template<typename T>
+struct __list_node {
+    typedef void* void_pointer;
 
-    pointer_type ptr;
+    void_pointer prev;  // can use __list_node<T>*
+    void_pointer next;
+    T data;
+};
 
-    ListIter(pointer_type p = 0)
-        : ptr(p)
+template<typename T, typename Ref, typename Ptr>
+struct __list_iterator : Iterator<bidirectional_iterator_tag, T, ptrdiff_t, Ptr, Ref> {
+    typedef __list_iterator<T, T&, T*> iterator;
+    typedef __list_iterator<T, Ref, Ptr> self;
+
+    // other necessary typedefs defined in base class
+    typedef bidirectional_iterator_tag iterator_category;
+    typedef T value_type;
+    typedef Ptr pointer;
+    typedef Ref reference;
+    typedef ptrdiff_t difference_type;
+    typedef __list_node<T>* link_type;
+    typedef size_t size_type;
+
+    link_type node_;
+
+    // constructors
+    __list_iterator() {}
+    __list_iterator(link_type x)
+        : node_(x)
     {}
-    // using default copy ctor
-    // using default operator=
+    __list_iterator(const iterator& x)
+        : node_(x.node_)
+    {}
 
-    reference_type operator*() { return *ptr; }
-    pointer_type operator->() { return ptr; }
+    // operators
+    bool operator==(const self& rhs) const { return node_ == rhs.node_; }
+    bool operator!=(const self& rhs) const { return node_ != rhs.node_; }
+    reference operator*() const { return node_->data; }
+    pointer operator->() const { return &(operator*()); }
 
-    // pre-increment operator
-    ListIter& operator++()
+    self& operator++()
     {
-        ptr = ptr->next();
+        node_ = (link_type)(node_->next);
         return *this;
     }
-    // post-increment operator
-    ListIter operator++(int)
+    self operator++(int)
     {
-        ListIter tmp = *this;
+        self tmp = *this;
         ++(*this);
         return tmp;
     }
-
-    bool operator==(const ListIter& rhs) const { return ptr == rhs.ptr; }
-    bool operator!=(const ListIter& rhs) const { return ptr != rhs.ptr; }
+    self& operator--()
+    {
+        node_ = (link_type)(node_->prev);
+        return *this;
+    }
+    self operator--(int)
+    {
+        self tmp = *this;
+        --(*this);
+        return tmp;
+    }
 };
 
-}  // namespace mini::iterator
+}  // namespace mini::iter
 
 #endif

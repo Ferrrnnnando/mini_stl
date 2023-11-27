@@ -1,15 +1,15 @@
 #include "mini_stl/test/mini_unittest.h"
 
 #include "mini_stl/algorithm/mini_algorithm_base.h"
-#include "mini_stl/container/mini_container_list.h"
-#include "mini_stl/iterator/mini_iterator_list.h"
+#include "mini_stl/container/mini_container_list_toy.h"
+#include "mini_stl/iterator/mini_iterator_list_toy.h"
 
-TEST(mini_iterator_test, basic)
+TEST(mini_iterator_test_toy, basic)
 {
     using value_type = int;
     using item_type = mini::container::ListItem<value_type>;
     using group_type = mini::container::List<value_type>;
-    using iterator_type = mini::iterator::ListIter<item_type>;
+    using iterator_type = mini::iter::ListIter<item_type>;
     auto find_func = mini::algo::find<iterator_type, value_type>;
 
     // List operation

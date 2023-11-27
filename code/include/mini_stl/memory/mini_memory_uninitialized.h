@@ -53,7 +53,7 @@ template<typename InputIterator, typename ForwardIterator>
 inline ForwardIterator uninitialized_copy(
     InputIterator first, InputIterator last, ForwardIterator result)
 {
-    return __uninitialized_copy(first, last, result, mini::iterator::value_type(first));
+    return __uninitialized_copy(first, last, result, mini::iter::value_type(first));
 }
 
 // specialized templates for char*
@@ -105,7 +105,7 @@ inline void __uninitialized_fill(ForwardIterator first, ForwardIterator last, co
 template<typename ForwardIterator, typename T>
 inline void uninitialized_fill(ForwardIterator first, ForwardIterator last, const T& value)
 {
-    __uninitialized_fill(first, last, value, mini::iterator::value_type(first));
+    __uninitialized_fill(first, last, value, mini::iter::value_type(first));
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -153,7 +153,7 @@ inline ForwardIterator __uninitialized_fill_n(ForwardIterator first, Size n, con
 template<typename ForwardIterator, typename Size, typename T>
 inline ForwardIterator uninitialized_fill_n(ForwardIterator first, Size n, const T& x)
 {
-    return __uninitialized_fill_n(first, n, x, mini::iterator::value_type(first));
+    return __uninitialized_fill_n(first, n, x, mini::iter::value_type(first));
 }
 
 }  // namespace mini::memory
