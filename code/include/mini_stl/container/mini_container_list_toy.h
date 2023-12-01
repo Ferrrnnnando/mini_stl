@@ -15,6 +15,8 @@ public:
         , next_(next)
     {}
 
+    bool operator!=(T n) { return value() != n; }
+
     void set_value(value_type value) { value_ = value; }
     void set_next(ListItem* next) { next_ = next; }
     value_type value() const { return value_; }

@@ -131,7 +131,17 @@ TEST(mini_container_vector_test, primitive_types)
 TEST(mini_container_vector_test, nonprimive_types)
 {
     struct A {
-        ~A() { std::cout << "A's dtor" << std::endl; }
+        int foo;
+        char bar;
+
+        A(int foo, char bar)
+        {
+            this->foo = foo;
+            this->bar = bar;
+        }
+        // ~A() { std::cout << "A's dtor" << std::endl; }
+
+        bool operator==(const A& rhs) { return foo == rhs.foo && bar == rhs.bar; }
     };
 
     using value_type = A;
@@ -140,5 +150,17 @@ TEST(mini_container_vector_test, nonprimive_types)
 
     {
         vector vec;
+    }
+
+    {
+        vector vec;
+        vec.push_back(A(1, 'a'));
+        vec.push_back(A(2, 'b'));
+
+        vector vec2;
+        vec2.push_back(A(1, 'a'));
+        vec2.push_back(A(2, 'b'));
+
+        EXPECT_TRUE(std::equal(vec.begin(), vec.end(), vec2.begin(), vec2.end()));
     }
 }
