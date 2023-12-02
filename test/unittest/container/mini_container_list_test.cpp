@@ -159,6 +159,7 @@ TEST(mini_container_list_test, advanced)
     using list = mini::ctnr::list<value_type, allocator>;
 
     {
+        // merge() test
         list l;
         size_t NUM_NODE = 0;
 
@@ -184,5 +185,41 @@ TEST(mini_container_list_test, advanced)
         NUM_NODE += 4;
         EXPECT_EQ(l.size(), NUM_NODE);
         EXPECT_EQ(l.dump(), "0 1 3 3 3 4 5 6 9");
+        EXPECT_EQ(l2.size(), 0);
+        EXPECT_EQ(l2.dump(), "");
+    }
+
+    {
+        // swap() test
+        list l;
+        l.push_back(1);
+        l.push_back(3);
+        l.push_back(5);
+
+        list l2;
+        l2.push_back(2);
+        l2.push_back(4);
+
+        l.swap(l2);
+        EXPECT_EQ(l.dump(), "2 4");
+        EXPECT_EQ(l2.dump(), "1 3 5");
+    }
+
+    {
+        // sort() test
+        list l;
+        l.push_back(3);
+        l.push_back(1);
+        l.push_back(2);
+        l.push_back(2);
+        l.push_back(-1);
+        l.push_back(5);
+        auto it = l.begin();
+        EXPECT_EQ(*it, 3);
+        EXPECT_EQ(l.dump(), "3 1 2 2 -1 5");
+
+        l.sort();
+        EXPECT_EQ(*it, 3);
+        EXPECT_EQ(l.dump(), "-1 1 2 2 3 5");
     }
 }

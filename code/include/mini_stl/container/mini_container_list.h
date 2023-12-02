@@ -169,6 +169,7 @@ public:
      * @brief Merge a source list into current list.
      *
      * @attention Lists must be sorted before invoke this function.
+     * @attention 'other' container becomes empty after merged into *this.
      * @param other Source list
      */
     void merge(self& other)
@@ -215,10 +216,28 @@ public:
     }
 
     /**
+     * @brief Exchange contents of the container with those of 'other'.
+     *
+     * @attention No move, copy or swap operations on inidividual elements.
+     *            All iterators and references are still valid.
+     * @param other
+     */
+    void swap(self& other)
+    {
+        iterator old_begin = begin();
+        // transfer all nodes from 'other' to the head of current list
+        splice(begin(), other);
+
+        // transfer all original nodes of current list to 'other'
+        splice(other.begin(), *this, old_begin, end());
+    }
+
+    /**
      * @brief Sort the list in ascending order of node's value field.
      *
      * @attention List uses bidirectional iterator, so it cannot use std::sort,
-     *            which requires random access iterator to do sorting.
+     *            which requires random access iterator.
+     * @attention Iterative merge sort is used. Time: O(NlogN), Extra space: O(1).
      * @attention Quicksort is used.
      */
     void sort()
@@ -226,7 +245,29 @@ public:
         if (size() <= 1) {
             return;
         }
-        // TODO: finish sort()
+
+        self carry;
+        self counter[64];
+        int fill = 0;
+
+        while (!empty()) {  // repeat until all nodes in current list are used up in sorting
+            carry.splice(carry.begin(), *this, begin());
+            int i = 0;
+            while (i < fill && !counter[i].empty()) {
+                counter[i].merge(carry);
+                carry.swap(counter[i++]);
+            }
+            carry.swap(counter[i]);  // stores all nodes in current counter, empty counter
+            if (i == fill) {         // update largest index of filled counter
+                ++fill;
+            }
+        }
+
+        for (int i = 1; i < fill; i++) {
+            counter[i].merge(counter[i - 1]);
+        }
+        // counter[fill - 1] contains completed final sorted array
+        swap(counter[fill - 1]);
     }
 
     /**
