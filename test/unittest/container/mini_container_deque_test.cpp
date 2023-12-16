@@ -12,6 +12,14 @@ TEST(mini_container_deque_test, basics)
 
     {
         // creation
+        deque d0;
+        EXPECT_EQ(d0.size(), 0);
+        EXPECT_EQ(d0.dump(), "");
+
+        deque d00(3);
+        EXPECT_EQ(d00.size(), 3);
+        EXPECT_EQ(d00.dump(), "0 0 0");
+
         deque d(0, 0);
         EXPECT_EQ(d.size(), 0);
         EXPECT_EQ(d.dump(), "");

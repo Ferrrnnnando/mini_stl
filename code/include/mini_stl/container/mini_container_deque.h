@@ -27,7 +27,7 @@ protected:  // internal typedefs
     typedef mem::simple_alloc<pointer, Alloc> map_allocator;
 
 public:
-    deque(int n, const_reference value)
+    deque(int n = 0, const_reference value = value_type{})
         : begin_()
         , end_()
         , map_(0)
