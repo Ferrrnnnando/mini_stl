@@ -238,7 +238,6 @@ public:
      * @attention List uses bidirectional iterator, so it cannot use std::sort,
      *            which requires random access iterator.
      * @attention Iterative merge sort is used. Time: O(NlogN), Extra space: O(1).
-     * @attention Quicksort is used.
      */
     void sort()
     {

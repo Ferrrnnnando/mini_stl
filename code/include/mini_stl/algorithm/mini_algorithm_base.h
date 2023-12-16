@@ -23,27 +23,25 @@ InputIterator for_each(InputIterator first, InputIterator last, Function& func)
     return first;
 }
 
-/*
-// A better implementation:
-
-template<typename Iterator, typename T>
-void func_impl(Iterator iter, T t){
-    T tmp;  // T refers to object type that iterator pointing to
-    ...
-    // Do what func() originally needs to do
+template<typename InputIt, typename OutputIt>
+OutputIt copy(InputIt first, InputIt last, OutputIt d_first)
+{
+    while (first != last) {
+        *d_first = *first;
+        ++first;
+        ++d_first;
+    }
+    return d_first;
 }
 
-template<typename Iterator>
-void func(Iterator iter){
-    func_impl(iter, *iter);
+template<typename BidirIt1, typename BidirIt2>
+BidirIt2 copy_backward(BidirIt1 first, BidirIt1 last, BidirIt2 d_last)
+{
+    while (first != last) {
+        *(--d_last) = *(--last);
+    }
+    return d_last;
 }
-
-int main(){
-    int i;
-    func(&i);
-}
-
-*/
 
 }  // namespace mini::algo
 

@@ -1,6 +1,7 @@
 #ifndef MINI_CONTAINER_VECTOR_H
 #define MINI_CONTAINER_VECTOR_H
 
+#include "mini_stl/algorithm/mini_algorithm.h"
 #include "mini_stl/memory/mini_memory.h"
 
 namespace mini::ctnr {
@@ -131,8 +132,7 @@ public:
     {
         // remove non-tail elements: move all elements behind it to front
         if (pos + 1 != end()) {
-            // mem::copy(pos + 1, end(), pos);  // TODO: global copy() to be implemented later
-            std::copy(pos + 1, end(), pos);
+            algo::copy(pos + 1, end(), pos);
         }
         --end_;
         mem::destroy(end_);
@@ -148,8 +148,7 @@ public:
      */
     iterator erase(iterator first, iterator last)
     {
-        // iterator i = mem::copy(last, end_, first);  // TODO: global copy() to be implemented later
-        iterator i = std::copy(last, end_, first);
+        iterator i = algo::copy(last, end_, first);
         mem::destroy(i, end_);
         end_ = end_ - (last - first);
         return first;
@@ -193,7 +192,7 @@ public:
                 // copy last n element of current vector at position end_
                 mem::uninitialized_copy(end_ - n, end_, end_);
                 end_ += n;
-                std::copy_backward(pos, old_finish - n, old_finish);
+                algo::copy_backward(pos, old_finish - n, old_finish);
                 std::fill(pos, pos + n, value);
             } else {  // number of existing elements after insert pos <= n
                 // |---       n         ---|
@@ -271,7 +270,7 @@ protected:
             mem::construct(end_, *(end_ - 1));
             ++end_;
             // shift backward all elements starting from insert position
-            std::copy_backward(pos, end_ - 2, end_ - 1);
+            algo::copy_backward(pos, end_ - 2, end_ - 1);
             *pos = value;
         } else {
             // No reserved space available
