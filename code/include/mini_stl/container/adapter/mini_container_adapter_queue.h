@@ -1,14 +1,14 @@
-#ifndef MINI_CONTAINER_ADAPTER_STACK_H
-#define MINI_CONTAINER_ADAPTER_STACK_H
+#ifndef MINI_CONTAINER_ADAPTER_QUEUE_H
+#define MINI_CONTAINER_ADAPTER_QUEUE_H
 
 #include "mini_stl/container/mini_container_deque.h"
 
 namespace mini::ctnr {
 
 template<typename T, typename Sequence = deque<T>>
-class stack {
+class queue {
 public:
-    typedef stack<T, Sequence> self;
+    typedef queue<T, Sequence> self;
     typedef typename Sequence::value_type value_type;
     typedef typename Sequence::size_type size_type;
     typedef typename Sequence::reference reference;
@@ -19,13 +19,17 @@ public:
 
     size_type size() const { return c_.size(); }
 
-    reference top() { return c_.back(); }
+    reference front() { return c_.front(); }
 
-    const_reference top() const { return c_.back(); }
+    const_reference front() const { return c_.front(); }
+
+    reference back() { return c_.back(); }
+
+    const_reference back() const { return c_.back(); }
 
     void push(const_reference value) { c_.push_back(value); }
 
-    void pop() { c_.pop_back(); }
+    void pop() { c_.pop_front(); }
 
 protected:
     Sequence c_;
