@@ -141,7 +141,7 @@ TEST(mini_container_vector_test, nonprimive_types)
         }
         // ~A() { std::cout << "A's dtor" << std::endl; }
 
-        bool operator==(const A& rhs) { return foo == rhs.foo && bar == rhs.bar; }
+        bool operator==(const A& rhs) const { return foo == rhs.foo && bar == rhs.bar; }
     };
 
     using value_type = A;
