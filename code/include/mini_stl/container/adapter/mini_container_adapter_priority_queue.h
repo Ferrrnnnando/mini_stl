@@ -1,11 +1,13 @@
 #ifndef MINI_CONTAINER_ADAPTER_PRIORITY_PRIORITY_QUEUE_H
 #define MINI_CONTAINER_ADAPTER_PRIORITY_PRIORITY_QUEUE_H
 
-#include "mini_stl/container/mini_container_deque.h"
+#include "mini_stl/algorithm/mini_algorithm_heap.h"
+#include "mini_stl/container/mini_container_vector.h"
 
 namespace mini::ctnr {
 
-template<typename T, typename Sequence = deque<T>>
+template<typename T, typename Sequence = vector<T>,
+    typename Compare = std::less<typename Sequence::value_type>>
 class priority_queue {
 public:
     typedef priority_queue<T, Sequence> self;
@@ -15,24 +17,53 @@ public:
     typedef typename Sequence::const_reference const_reference;
 
 public:
+    priority_queue()
+        : c_()
+        , comp_(){};
+
+    explicit priority_queue(const Compare& comp)
+        : c_()
+        , comp_(comp)
+    {}
+
+    template<typename InputIterator>
+    priority_queue(InputIterator first, InputIterator last, const Compare& comp = Compare{})
+        : c_(first, last)
+        , comp_(comp)
+    {
+        algo::make_heap(c_.begin(), c_.end());
+    }
+
+public:
     bool empty() const { return c_.empty(); }
 
     size_type size() const { return c_.size(); }
 
-    reference front() { return c_.front(); }
+    const_reference top() const { return c_.front(); }
 
-    const_reference front() const { return c_.front(); }
+    void push(const_reference value)
+    {
+        try {
+            c_.push_back(value);
+            algo::push_heap(c_.begin(), c_.end());
+        } catch (...) {
+            c_.clear();
+        }
+    }
 
-    reference back() { return c_.back(); }
-
-    const_reference back() const { return c_.back(); }
-
-    void push(const_reference value) { c_.push_back(value); }
-
-    void pop() { c_.pop_front(); }
+    void pop()
+    {
+        try {
+            algo::pop_heap(c_.begin(), c_.end());
+            c_.pop_back();
+        } catch (...) {
+            c_.clear();
+        }
+    }
 
 protected:
     Sequence c_;
+    Compare comp_;  // compare for value
 };
 
 }  // namespace mini::ctnr

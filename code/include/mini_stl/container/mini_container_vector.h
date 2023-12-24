@@ -30,15 +30,19 @@ public:
 
     vector(size_type n, const_reference value) { fill_initialize(n, value); }
 
-    vector(int n, const_reference value) { fill_initialize(n, value); }
-
-    vector(long n, const_reference value) { fill_initialize(n, value); }
+    template<typename InputIterator>
+    vector(InputIterator first, InputIterator last)
+    {
+        range_initialize(first, last);
+    }
 
     ~vector() { destroy_and_deallocate(); }
 
 public:
     // Element access
     reference front() { return *begin(); }
+
+    const_reference front() const { return *begin(); }
 
     reference back() { return *(end() - 1); }
 
@@ -57,7 +61,11 @@ public:
     // iterators
     iterator begin() { return begin_; }
 
+    const iterator begin() const { return begin_; }
+
     iterator end() { return end_; }
+
+    const iterator end() const { return end_; }
 
     // capacity
     size_type size() { return size_type(end() - begin()); }
@@ -304,6 +312,17 @@ protected:
         }
     }
 
+    template<typename InputIterator>
+    void range_initialize(InputIterator first, InputIterator last)
+    {
+        difference_type n = last - first;
+        iterator res = allocate(n);
+        mem::uninitialized_copy(first, last, res);
+        begin_ = res;
+        end_ = begin_ + n;
+        end_of_storage_ = end_;
+    }
+
     void fill_initialize(size_type n, const_reference value)
     {
         begin_ = allocate_and_fill(n, value);
@@ -318,11 +337,7 @@ protected:
         return res;
     }
 
-    void destroy_and_deallocate()
-    {
-        destroy();
-        deallocate();
-    }
+    iterator allocate(size_type n) { return data_allocator::allocate(n); }
 
     void destroy() { mem::destroy(begin(), end()); }
 
@@ -331,6 +346,12 @@ protected:
         if (begin_) {
             data_allocator::deallocate(begin_, end_of_storage_ - begin_);
         }
+    }
+
+    void destroy_and_deallocate()
+    {
+        destroy();
+        deallocate();
     }
 
 protected:

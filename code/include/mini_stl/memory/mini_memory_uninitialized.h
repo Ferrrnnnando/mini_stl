@@ -3,6 +3,7 @@
 #ifndef MINI_MEMORY_UNINITIALIZED_H
 #define MINI_MEMORY_UNINITIALIZED_H
 
+#include "mini_stl/algorithm/mini_algorithm_base.h"
 #include "mini_stl/base/mini_base_type_traits.h"
 #include "mini_stl/iterator/mini_iterator_base.h"
 #include "mini_stl/memory/mini_memory_construct.h"
@@ -38,7 +39,7 @@ template<typename InputIterator, typename ForwardIterator>
 inline ForwardIterator __uninitialized_copy_aux(
     InputIterator first, InputIterator last, ForwardIterator result, mini::type_traits::__true_type)
 {
-    return std::copy(first, last, result);
+    return algo::copy(first, last, result);
 }
 
 template<typename InputIterator, typename ForwardIterator, typename T>

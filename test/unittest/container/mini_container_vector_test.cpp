@@ -11,20 +11,32 @@ TEST(mini_container_vector_test, primitive_types)
     using vector = mini::ctnr::vector<value_type, allocator>;
 
     {
-        vector vec;
-    }
-
-    {
         // Different vector constructors
-        vector vec(2);
-        EXPECT_EQ(vec.size(), 2);
-        EXPECT_EQ(vec.capacity(), 2);
+        vector vec0;
+        EXPECT_EQ(vec0.size(), 0);
+        EXPECT_EQ(vec0.capacity(), 0);
 
+        // Construct with a size
+        vector vec1(2);
+        EXPECT_EQ(vec1.size(), 2);
+        EXPECT_EQ(vec1.capacity(), 2);
+
+        // Construct with a size and initial values
         vector vec2(2, 10);
-        EXPECT_EQ(vec.size(), 2);
-        EXPECT_EQ(vec.capacity(), 2);
-        EXPECT_EQ(vec2[0], 10);
-        EXPECT_EQ(vec2[1], 10);
+        EXPECT_EQ(vec2.size(), 2);
+        EXPECT_EQ(vec2.capacity(), 2);
+        EXPECT_EQ(dump(vec2), "10 10");
+
+        // Construct using existing containers
+        value_type arr[] = {1, 2, 3};
+        const size_t size = sizeof(arr) / sizeof(value_type);
+        vector vec3(arr, arr + 3);
+        EXPECT_EQ(vec3.size(), size);
+        EXPECT_EQ(dump(vec3), "1 2 3");
+
+        vector vec4(vec2.begin(), vec2.end());
+        EXPECT_EQ(vec4.size(), 2);
+        EXPECT_EQ(dump(vec4), "10 10");
 
         // out-of-range access
         try {
@@ -62,9 +74,7 @@ TEST(mini_container_vector_test, primitive_types)
 
         // insert elements
         vec.insert(vec.begin(), 5, 10);
-        for (int i = 0; i < 5; i++) {
-            EXPECT_EQ(vec[i], 10);
-        }
+        EXPECT_EQ(dump(vec), "10 10 10 10 10 1 2 3 4 5");
         EXPECT_EQ(vec.size(), 10);
         EXPECT_EQ(vec.capacity(), 10);
 
