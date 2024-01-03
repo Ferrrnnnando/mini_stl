@@ -2,7 +2,7 @@
 
 #include "mini_stl/algorithm/mini_algorithm.h"
 
-TEST(mini_algo_heap_test, std_vector)
+TEST(mini_algo_test, heap_test_std_vector)
 {
     // Use std::vector as underlying container
     std::vector<int> v{0, 1, 2, 3, 4, 8, 9, 3, 5};
@@ -22,7 +22,7 @@ TEST(mini_algo_heap_test, std_vector)
     EXPECT_EQ(dump(v), "0 1 2 3 3 4 5 7 8");
 }
 
-TEST(mini_algo_heap_test, array)
+TEST(mini_algo_test, heap_test_array)
 {
     // Use raw array as underlying container
     using value_type = int;

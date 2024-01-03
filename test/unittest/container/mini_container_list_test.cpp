@@ -3,7 +3,7 @@
 #include "mini_stl/algorithm/mini_algorithm.h"
 #include "mini_stl/container/mini_container_list.h"
 
-TEST(mini_container_list_test, basics)
+TEST(mini_container_test, list_test_basics)
 {
     using value_type = int;
     using allocator = mini::mem::alloc;
@@ -43,7 +43,7 @@ TEST(mini_container_list_test, basics)
     }
 }
 
-TEST(mini_container_list_test, member_func_splice)
+TEST(mini_container_test, list_test_member_func_splice)
 {
     using value_type = int;
     using allocator = mini::mem::alloc;
@@ -152,7 +152,7 @@ TEST(mini_container_list_test, member_func_splice)
     }
 }
 
-TEST(mini_container_list_test, advanced)
+TEST(mini_container_test, list_test_advanced)
 {
     using value_type = int;
     using allocator = mini::mem::alloc;

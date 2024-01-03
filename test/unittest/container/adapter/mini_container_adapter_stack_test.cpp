@@ -4,7 +4,7 @@
 #include "mini_stl/container/adapter/mini_container_adapter_stack.h"
 #include "mini_stl/container/mini_container_list.h"
 
-TEST(mini_container_adapter_stack_test, basics)
+TEST(mini_container_test, adapter_stack_test_basics)
 {
     using value_type = int;
     using sequence = mini::ctnr::list<value_type>;

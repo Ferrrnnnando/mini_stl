@@ -2,7 +2,7 @@
 
 #include "mini_stl/container/adapter/mini_container_adapter_priority_queue.h"
 
-TEST(mini_container_adapter_priority_queue_test, std_vector)
+TEST(mini_container_test, adapter_priority_queue_test_std_vector)
 {
     using value_type = int;
     using priority_queue = mini::ctnr::priority_queue<value_type>;
@@ -21,7 +21,7 @@ TEST(mini_container_adapter_priority_queue_test, std_vector)
     }
 }
 
-TEST(mini_container_adapter_priority_queue_test, array)
+TEST(mini_container_test, adapter_priority_queue_test_array)
 {
     using value_type = int;
     using priority_queue = mini::ctnr::priority_queue<value_type>;

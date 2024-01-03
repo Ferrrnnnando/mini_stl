@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-TEST(mini_container_vector_test, primitive_types)
+TEST(mini_container_test, vector_test_primitive_types)
 {
     using value_type = int;
     using allocator = mini::mem::alloc;
@@ -138,7 +138,7 @@ TEST(mini_container_vector_test, primitive_types)
     }
 }
 
-TEST(mini_container_vector_test, nonprimive_types)
+TEST(mini_container_test, vector_test_nonprimive_types)
 {
     struct A {
         int foo;

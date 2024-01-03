@@ -2,7 +2,7 @@
 
 #include "mini_stl/utility/mini_utility_rbtree.h"
 
-TEST(mini_utility_rb_tree_test, basics)
+TEST(mini_utility_test, rb_tree_test_basics)
 {
     using value_type = int;
     using key_type = value_type;

@@ -3,7 +3,7 @@
 #include "mini_stl/algorithm/mini_algorithm.h"
 #include "mini_stl/container/mini_container_deque.h"
 
-TEST(mini_container_deque_test, basics)
+TEST(mini_container_test, deque_test_basics)
 {
     using value_type = int;
     using allocator = mini::mem::alloc;
@@ -41,7 +41,7 @@ TEST(mini_container_deque_test, basics)
     }
 }
 
-TEST(mini_container_deque_test, advanced)
+TEST(mini_container_test, deque_test_advanced)
 {
     using value_type = int;
     using allocator = mini::mem::alloc;

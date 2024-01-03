@@ -2,7 +2,7 @@
 
 #include "mini_stl/container/mini_container_set.h"
 
-TEST(mini_container_set_test, basics)
+TEST(mini_container_test, set_test_basics)
 {
     using value_type = int;
     using key_type = value_type;

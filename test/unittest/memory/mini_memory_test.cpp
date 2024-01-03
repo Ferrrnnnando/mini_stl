@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <vector>
 
-TEST(mini_memory_defalloc_test, vec_primitive_type_defalloc)
+TEST(mini_memory_test, defalloc_test_vec_primitive_type)
 {
     int arr[] = {1, 2, 3};
     size_t len = sizeof(arr) / sizeof(int);
@@ -16,7 +16,7 @@ TEST(mini_memory_defalloc_test, vec_primitive_type_defalloc)
     EXPECT_TRUE(std::equal(vec.begin(), vec.end(), ans.begin()));
 }
 
-TEST(mini_memory_defalloc_test, vec_nonprimitive_type_defalloc)
+TEST(mini_memory_test, defalloc_test_vec_nonprimitive_type)
 {
     struct A {
         A(int a, char b)
@@ -33,7 +33,7 @@ TEST(mini_memory_defalloc_test, vec_nonprimitive_type_defalloc)
     EXPECT_TRUE(vec2.back() == A(1, 'a'));
 }
 
-TEST(mini_memory_alloc_test, primitive_type)
+TEST(mini_memory_test, alloc_test_primitive_type)
 {
     typedef mini::mem::__default_alloc_template<false, 1> alloc;
     using allocator_type = alloc;
