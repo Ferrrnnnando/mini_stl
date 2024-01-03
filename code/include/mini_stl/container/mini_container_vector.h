@@ -30,11 +30,7 @@ public:
 
     vector(size_type n, const_reference value) { fill_initialize(n, value); }
 
-    template<typename InputIterator>
-    vector(InputIterator first, InputIterator last)
-    {
-        range_initialize(first, last);
-    }
+    vector(iterator first, iterator last) { range_initialize(first, last); }
 
     ~vector() { destroy_and_deallocate(); }
 
