@@ -11,6 +11,14 @@ struct identity {
     }
 };
 
+struct select1st {
+    template<typename T>
+    constexpr auto operator()(T&& t) const -> decltype(auto)
+    {
+        return std::forward<decltype(t.first)>(t.first);
+    }
+};
+
 }  // namespace mini::func
 
 #endif
