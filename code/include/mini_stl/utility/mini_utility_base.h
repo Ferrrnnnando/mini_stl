@@ -3,14 +3,6 @@
 
 namespace mini::util {
 
-struct identity {
-    template<typename T>
-    constexpr T&& operator()(T&& t) const
-    {
-        return std::forward<T>(t);
-    }
-};
-
 template<typename T1, typename T2>
 struct pair {
     constexpr pair(const T1& x, const T2& y)

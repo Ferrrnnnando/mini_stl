@@ -129,6 +129,8 @@ struct __rb_tree_iterator : public __rb_tree_iterator_base {
 
     __rb_tree_iterator(const iterator& other) { node = other.node; }
 
+    __rb_tree_iterator(const const_iterator& other) { node = other.node; }
+
     bool operator==(const self& other) const { return node == other.node; }
 
     bool operator!=(const self& other) const { return node != other.node; }
@@ -187,6 +189,7 @@ public:
 
     using link_type = node_type*;
     using iterator = __rb_tree_iterator<value_type, reference, pointer>;
+    using const_iterator = __rb_tree_iterator<value_type, const_reference, const_pointer>;
 
 public:
     rb_tree(const Compare& comp = Compare())
@@ -196,19 +199,28 @@ public:
         init();
     }
 
+    // // copy constructor
+    // rb_tree(const self& other)
+    // {
+    //     // TODO: verify
+    //     node_count_ = other.node_count_;
+    //     header_ = other.header_;
+    //     key_compare_ = other.key_compare_;
+    // }
+
     ~rb_tree()
     {
         clear();
         put_node(header_);
     }
 
-    self& operator=(const self& other)
-    {
-        // TODO: verify
-        node_count_ = other.node_count_;
-        header_ = other.header_;
-        key_compare_ = other.key_compare_;
-    }
+    // self& operator=(const self& other)
+    // {
+    //     // TODO: verify
+    //     node_count_ = other.node_count_;
+    //     header_ = other.header_;
+    //     key_compare_ = other.key_compare_;
+    // }
 
 public:
     iterator begin() const { return leftmost(); }
@@ -222,6 +234,9 @@ public:
     Compare key_comp() const { return key_compare_; }
 
     bool empty() const { return node_count_ == 0; }
+
+    // TODO: count how many nodes with a key
+    // size_type count(const key_type& k) const { }
 
     size_type size() const { return node_count_; }
 

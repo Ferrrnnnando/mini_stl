@@ -6,7 +6,7 @@ TEST(mini_utility_rb_tree_test, basics)
 {
     using value_type = int;
     using key_type = value_type;
-    using KeyOfValue = mini::util::identity;
+    using KeyOfValue = mini::func::identity;
     using Compare = mini::func::less<key_type>;
     using rb_tree = mini::util::rb_tree<key_type, value_type, KeyOfValue, Compare>;
 
@@ -38,5 +38,11 @@ TEST(mini_utility_rb_tree_test, basics)
         // find
         EXPECT_EQ(*rbt.find(8), 8);
         EXPECT_EQ(rbt.find(9), rbt.end());
+
+        // modify
+        auto ret = rbt.find(8);
+        *ret = 999;
+        // note: tree's properties may be affected: no longer sorted
+        EXPECT_EQ(dump(rbt), "5 6 7 999 10 11 12 13 15");
     }
 }
