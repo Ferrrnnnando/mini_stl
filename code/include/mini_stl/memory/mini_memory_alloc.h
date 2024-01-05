@@ -333,11 +333,11 @@ typedef __default_alloc_template<__NODE_ALLOCATOR_THREADS, 0> alloc;
  * @brief A thin allocator wrapper(1st/2nd level allocator) to satisfy STL standard interface
  *
  * @tparam T value type
- * @tparam Alloc 1st level allocator or sub-allocator
+ * @tparam Allocator 1st level allocator or sub-allocator
  *
- * @attention Each static method is just a simple forwarding functions to actual method of Alloc
+ * @attention Each static method is just a simple forwarding functions to actual method of Allocator
  */
-template<typename T, typename Alloc>
+template<typename T, typename Allocator>
 class simple_alloc {
 public:
     // necessary associated types
@@ -350,18 +350,18 @@ public:
     typedef ptrdiff_t difference_type;
 
 public:
-    static T* allocate(size_t n) { return 0 == n ? 0 : (T*)Alloc::allocate(n * sizeof(T)); }
-    static T* allocate(void) { return (T*)Alloc::allocate(sizeof(T)); }
+    static T* allocate(size_t n) { return 0 == n ? 0 : (T*)Allocator::allocate(n * sizeof(T)); }
+    static T* allocate(void) { return (T*)Allocator::allocate(sizeof(T)); }
     static void deallocate(T* p, size_t n)
     {
         if (!p) {
             return;
         }
         if (n != 0) {
-            Alloc::deallocate(p, n * sizeof(T));
+            Allocator::deallocate(p, n * sizeof(T));
         }
     }
-    static void deallocate(T* p) { Alloc::deallocate(p, sizeof(T)); }
+    static void deallocate(T* p) { Allocator::deallocate(p, sizeof(T)); }
 };
 
 }  // namespace mini::mem

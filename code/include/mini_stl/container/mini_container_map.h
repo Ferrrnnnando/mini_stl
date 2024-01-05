@@ -7,7 +7,7 @@
 namespace mini::ctnr {
 
 template<typename Key, typename Value, typename Compare = func::less<Key>,
-    typename Alloc = mem::alloc>
+    typename Allocator = mem::alloc>
 class map {
 public:
     using key_type = Key;
@@ -16,7 +16,7 @@ public:
     using element_type = util::pair<const Key, Value>;
     using key_compare_type = Compare;
     using store_type =
-        util::rb_tree<key_type, element_type, func::select1st, key_compare_type, Alloc>;
+        util::rb_tree<key_type, element_type, func::select1st, key_compare_type, Allocator>;
 
     class value_compare {
         value_compare(const Compare& comp)

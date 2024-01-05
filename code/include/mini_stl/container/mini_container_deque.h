@@ -10,7 +10,7 @@
 
 namespace mini::ctnr {
 
-template<typename T, typename Alloc = mem::alloc, size_t BufferSize = 0>
+template<typename T, typename Allocator = mem::alloc, size_t BufferSize = 0>
 class deque {
 public:  // public typedefs
     typedef T value_type;
@@ -23,8 +23,8 @@ public:  // public typedefs
 
 protected:  // internal typedefs
     typedef pointer* map_pointer;
-    typedef mem::simple_alloc<value_type, Alloc> data_allocator;
-    typedef mem::simple_alloc<pointer, Alloc> map_allocator;
+    typedef mem::simple_alloc<value_type, Allocator> data_allocator;
+    typedef mem::simple_alloc<pointer, Allocator> map_allocator;
 
 public:
     deque(int n = 0, const_reference value = value_type{})

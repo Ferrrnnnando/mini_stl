@@ -121,7 +121,7 @@ struct __rb_tree_iterator : public __rb_tree_iterator_base {
     using iterator = __rb_tree_iterator<T, T&, T*>;
     using const_iterator = __rb_tree_iterator<T, const T&, const T*>;
     using self = __rb_tree_iterator<T, Ref, Ptr>;
-    using link_type = typename __rb_tree_node<T>::link_type;
+    using link_type = __rb_tree_node<T>*;
 
     __rb_tree_iterator() = default;
 
@@ -167,15 +167,15 @@ struct __rb_tree_iterator : public __rb_tree_iterator_base {
 };
 
 template<typename Key, typename Value, typename KeyOfValue, typename Compare = func::less<Key>,
-    typename Alloc = mem::alloc>
+    typename Allocator = mem::alloc>
 class rb_tree {
 protected:
     using void_pointer = void*;
     using base_link_type = typename __rb_tree_iterator_base::node_base_ptr;
     using node_type = __rb_tree_node<Value>;
+    using node_allocator = mem::simple_alloc<node_type, Allocator>;  // allocate a node at a time
     using color_type = __rb_tree_color_type;
-    using node_allocator = mem::simple_alloc<node_type, Alloc>;  // allocate a node at a time
-    using self = rb_tree<Key, Value, KeyOfValue, Compare, Alloc>;
+    using self = rb_tree<Key, Value, KeyOfValue, Compare, Allocator>;
 
 public:
     using key_type = Key;
@@ -225,11 +225,7 @@ public:
 public:
     iterator begin() const { return leftmost(); }
 
-    iterator end() const
-    {
-        // TODO: header_ is a node, can be converted to iterator???
-        return header_;
-    }
+    iterator end() const { return header_; }
 
     Compare key_comp() const { return key_compare_; }
 
@@ -272,21 +268,37 @@ public:
         }  // after leaving loop, parent is a leaf node, and node is a null node
 
         iterator prev_node_iter(parent);
-        if (comp) {                           // node's key is smaller, insert at left
-            if (prev_node_iter == begin()) {  // if insertion point's parent is the leftmost node
-                // node refers to insertion point, parent refers to parent of node
+        if (comp) {  // node's key is smaller, insert at left
+            if (prev_node_iter == begin()) {
+                // if insertion point's parent is the leftmost node:
+                // no node with smaller key in front of current node,
+                // so no need to check for possible duplication
                 return ReturnType(__insert(node, parent, val), true);
             } else {
+                // have nodes with smaller key in front of current node,
+                // need to check for possible key duplication.
                 --prev_node_iter;
             }
         }
+
+        // Knowledge:
+        // a, b are equivalent if neither compares less than the other:
+        // !comp(a, b) && !comp(b, a)
+
+        // Our situation:
+        // If new node (X) is equivalent to an existing node (Y), X will go to right(Y).
+        // Thus, X must be the first element in the right side of Y.
+        // Decrease X's iterator by 1 will end up reaching Y,
+        // thus one more comparison is done with Y, but with swapped other in comparison.
+        // If both comparison fails, it means X and Y are equivalent (not unique).
 
         // check if previous node's key is strictly smaller than current node's key
         if (key_compare_(key(prev_node_iter.node), KeyOfValue()(val))) {
             return ReturnType(__insert(node, parent, val), true);
         }
 
-        //  new key must be collide with existing key, do not insert this node
+        // !comp(a, b) && !comp(b, a) evaulates to false --> key duplication
+        // new key must be collide with existing key, do not insert this node
         return ReturnType(prev_node_iter, false);
     }
 
@@ -392,13 +404,12 @@ private:
         }
 
         // set parent, childs of newly created node
-        // color is assigned in __rb_tree_rebalance() later
         parent(z) = y;
         left(z) = 0;
         right(z) = 0;
+        color(z) = __rb_tree_red;
 
-        // rebalance tree
-        __rb_tree_rebalance(z, header_->parent);
+        __rb_tree_rebalance(z, header_->parent);  // tree structure and color is adjusted here
         ++node_count_;
         return iterator(z);  // return an iterator pointing to newly created node
     }
@@ -469,16 +480,27 @@ inline void __rb_tree_rebalance(__rb_tree_node_base* node, __rb_tree_node_base*&
     using base_link_type = __rb_tree_node_base*;
     node->color = __rb_tree_red;  // new node must be red
 
-    // repeat until not consecutive red
+    // repeat until not consecutive red between a node and its parent
     while (node != root && node->parent->color == __rb_tree_red) {
         // parent node is the left child of grandparent
+        // notes: symmetric to below right case
         if (node->parent == node->parent->parent->left) {
             base_link_type y = node->parent->parent->right;  // set y be uncle
             if (y && y->color == __rb_tree_red) {            // have uncle, and uncle is red
-                // Case 3: S is red
+                // Case 3 & 4: S is red
+
+                // Do following when a node X black,
+                // and its both childs are red.
+                // Change X to red, change childs to black.
+
+                // set parent and uncle be black
                 node->parent->color = __rb_tree_black;
                 y->color = __rb_tree_black;
+
+                // set grandparent to red
                 node->parent->parent->color = __rb_tree_red;
+
+                // go up to grandparent position
                 node = node->parent->parent;
             } else {
                 // no uncle, or uncle is black
@@ -518,6 +540,7 @@ inline void __rb_tree_rebalance(__rb_tree_node_base* node, __rb_tree_node_base*&
             }
         }
     }
+
     root->color = __rb_tree_black;  // root is always black
 }
 

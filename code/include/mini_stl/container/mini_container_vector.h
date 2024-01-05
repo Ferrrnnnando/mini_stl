@@ -6,7 +6,7 @@
 
 namespace mini::ctnr {
 
-template<typename T, typename Alloc = mini::mem::alloc>
+template<typename T, typename Allocator = mini::mem::alloc>
 class vector {
 public:
     typedef T value_type;
@@ -17,7 +17,7 @@ public:
     typedef const T& const_reference;
     typedef size_t size_type;
     typedef ptrdiff_t difference_type;
-    typedef mini::mem::simple_alloc<value_type, Alloc> allocator_type;
+    typedef mini::mem::simple_alloc<value_type, Allocator> allocator_type;
 
 public:
     vector()
@@ -110,7 +110,7 @@ public:
 
     // // TODO:
     // void shrink_to_fit(){
-    //     vector<T, Alloc>(begin(), end(), end()).swap(*this);
+    //     vector<T, Allocator>(begin(), end(), end()).swap(*this);
     // }
 
     // Modifiers
@@ -247,7 +247,7 @@ public:
     }
 
     // TODO: Verify correctness
-    void swap(vector<T, Alloc>& rhs)
+    void swap(vector<T, Allocator>& rhs)
     {
         // TODO: relace std::swap
         std::swap(begin_, rhs.begin_);

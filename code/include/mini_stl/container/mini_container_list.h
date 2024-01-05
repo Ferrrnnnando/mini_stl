@@ -16,13 +16,13 @@ namespace mini::ctnr {
  * @attention Adding, removing, and moving will not invalidate iterators.
  *            An iterator is invalidated only when corresponding element is deleted.
  * @tparam T value type
- * @tparam Alloc data allocator
+ * @tparam Allocator data allocator
  */
-template<typename T, typename Alloc = mem::alloc>
+template<typename T, typename Allocator = mem::alloc>
 class list {
 protected:
     typedef iter::__list_node<T> list_node;
-    typedef mem::simple_alloc<list_node, Alloc> list_node_allocator;
+    typedef mem::simple_alloc<list_node, Allocator> list_node_allocator;
 
 public:
     typedef T value_type;
@@ -34,7 +34,7 @@ public:
     typedef iter::__list_iterator<T, T&, T*> iterator;
     typedef const iterator const_iterator;
     // TODO: reverse iterator
-    typedef list<T, Alloc> self;
+    typedef list<T, Allocator> self;
     typedef list_node* link_type;
 
 public:
