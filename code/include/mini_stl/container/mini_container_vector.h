@@ -42,7 +42,11 @@ public:
 
     reference back() { return *(end() - 1); }
 
+    const_reference back() const { return *(end() - 1); }
+
     reference operator[](size_type n) { return *(begin() + n); }
+
+    const_reference operator[](size_type n) const { return *(begin() + n); }
 
     reference at(size_type n)
     {
@@ -64,7 +68,7 @@ public:
     const iterator end() const { return end_; }
 
     // capacity
-    size_type size() { return size_type(end() - begin()); }
+    size_type size() const { return size_type(end() - begin()); }
 
     size_type capacity() { return size_type(end_of_storage_ - begin()); }
 

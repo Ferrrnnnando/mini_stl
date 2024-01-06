@@ -137,7 +137,7 @@ struct __rb_tree_iterator : public __rb_tree_iterator_base {
 
     reference operator*() const { return ((link_type)node)->value; }
 
-    pointer operator->() const { return &operator*(); }
+    pointer operator->() const { return &(operator*()); }
 
     self& operator++()
     {
