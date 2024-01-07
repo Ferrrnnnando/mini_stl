@@ -110,8 +110,8 @@ struct __hashtable_const_iterator {
     {}
 
     __hashtable_const_iterator(const iterator& other)
-        : node(other._node)
-        , table(other._table)
+        : node(other.node)
+        , table(other.table)
     {}
 
     reference operator*() const { return node->value; }
@@ -154,11 +154,17 @@ class hashtable {
 public:
     using key_type = Key;
     using value_type = Value;
-    using const_reference = const Value&;
     using hasher = HashFunc;
     using key_equal = EqualKey;
     using key_extract = ExtractKey;
+
+    using reference = Value&;
+    using const_reference = const Value&;
+    using pointer = Value*;
+    using const_pointer = const Value*;
     using size_type = size_t;
+    using difference_type = ptrdiff_t;
+
     using iterator = __hashtable_iterator<Key, Value, HashFunc, ExtractKey, EqualKey, Allocator>;
     using const_iterator =
         __hashtable_const_iterator<Key, Value, HashFunc, ExtractKey, EqualKey, Allocator>;
@@ -174,13 +180,13 @@ private:
     using store_type = ctnr::vector<link_type, Allocator>;
 
 public:
-    hashtable(size_type n, const hasher& hash_func, const key_equal& equal_func)
+    hashtable(size_type bucket_count, const hasher& hash_func, const key_equal& equal_func)
         : hash_func_(hash_func)
         , equal_func_(equal_func)
         , get_key_func_(ExtractKey())
         , num_elements_(0)
     {
-        initialize_buckets(n);
+        initialize_buckets(bucket_count);
     }
 
 public:
@@ -222,6 +228,8 @@ public:
     }
 
     size_type size() const { return num_elements_; }
+
+    size_type max_size() const { return size_type(-1); }
 
     bool empty() const { return num_elements_ == 0; }
 
@@ -273,6 +281,30 @@ public:
         return insert_unique_no_resize(value);
     }
 
+    template<typename InputIterator>
+    void insert_unique(InputIterator first, InputIterator last)
+    {
+        insert_unique(first, last, iter::iterator_category(first));
+    }
+
+    template<typename InputIterator>
+    void insert_unique(InputIterator first, InputIterator last, iter::input_iterator_tag)
+    {
+        for (; first != last; ++first) {
+            insert_unique(*first);
+        }
+    }
+
+    template<typename ForwardIterator>
+    void insert_unique(ForwardIterator first, ForwardIterator last, iter::forward_iterator_tag)
+    {
+        auto n = iter::distance(first, last);
+        resize(num_elements_ + n);
+        for (; n > 0; --n, ++first) {
+            insert_unique_no_resize(*first);
+        }
+    }
+
     iterator insert_equal(const_reference value)
     {
         resize(num_elements_ + 1);  // resize table if needed
@@ -318,6 +350,12 @@ public:
             std::cerr << e.what() << '\n';
         }
     }
+
+    // observers
+
+    hasher get_hash_func() const { return hash_func_; }
+
+    key_equal get_key_equal_func() const { return equal_func_; }
 
 private:
     void initialize_buckets(size_type n)
