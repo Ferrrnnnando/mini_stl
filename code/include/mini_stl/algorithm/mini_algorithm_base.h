@@ -4,6 +4,8 @@
 #include "mini_stl/base/mini_base_type_traits.h"
 #include "mini_stl/iterator/mini_iterator_base.h"
 
+#include <cstring>
+
 namespace mini::algo {
 
 // notes: 'associated type' is used here: T
@@ -55,7 +57,7 @@ template<typename RandomAccessIterator, typename OutputIterator>
 inline OutputIterator __copy(RandomAccessIterator first, RandomAccessIterator last,
     OutputIterator result, iter::random_access_iterator_tag)
 {
-    __copy_d(first, last, result, iter::distance_type(first));
+    return __copy_d(first, last, result, iter::distance_type(first));
 }
 
 template<typename T>

@@ -1,24 +1,19 @@
 #ifndef MINI_FUNCTIONAL_BASE_H
 #define MINI_FUNCTIONAL_BASE_H
 
-#include <cstring>
-
 namespace mini::func {
 
-template<typename T>
-struct equal_to {
-    bool operator()(const T& first, const T& second) { return first == second; }
+template<typename Arg, typename Result>
+struct unary_function {
+    using argument_type = Arg;
+    using result_type = Result;
 };
 
-// template for const pointer
-template<typename T>
-struct equal_to<const T*> {
-    bool operator()(const T* first, const T* second) { return first == second; }
-};
-
-template<>
-struct equal_to<const char*> {
-    bool operator()(const char* first, const char* second) { return strcmp(first, second) == 0; }
+template<typename Arg1, typename Arg2, typename Result>
+struct binary_function {
+    using first_argument_type = Arg1;
+    using second_argument_type = Arg2;
+    using result_type = Result;
 };
 
 struct identity {
@@ -35,6 +30,16 @@ struct select1st {
     {
         return std::forward<decltype(t.first)>(t.first);
     }
+};
+
+template<typename Arg1, typename Arg2>
+struct project1st : public binary_function<Arg1, Arg2, Arg1> {
+    Arg1 operator()(const Arg1& x, const Arg2& /* y */) const { return x; }
+};
+
+template<typename Arg1, typename Arg2>
+struct project2nd : public binary_function<Arg1, Arg2, Arg2> {
+    Arg2 operator()(const Arg1& /* x */, const Arg2& y) const { return y; }
 };
 
 }  // namespace mini::func
