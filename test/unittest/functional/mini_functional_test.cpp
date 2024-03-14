@@ -16,3 +16,12 @@ TEST(mini_functional_test, comparator)
     static_assert(mini::func::less<double>{}(5, 5.6) == true);
     static_assert(mini::func::less{}(5, 5.6) == true);
 }
+
+TEST(mini_functional_test, adapters)
+{
+    // binder1st function object: bind an argument to first parameter of function,
+    // and accept another argument as second parameter of function.
+    auto binder = mini::func::bind1st(mini::func::equal_to<int>(), 1);
+    EXPECT_TRUE(binder(1));
+    EXPECT_FALSE(binder(2));
+}
