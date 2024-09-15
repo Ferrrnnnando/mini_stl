@@ -8,10 +8,10 @@
 
 namespace mini::mem {
 
-template<typename T1, typename T2>
-inline void construct(T1* ptr, const T2& value)
+template<typename T, typename... Args>
+inline void construct(T* ptr, Args&&... args)
 {
-    new (ptr) T1(value);  // placement new: T1::T1(value) is invoked
+    new (ptr) T(std::forward<Args>(args)...);
 }
 
 // Version 1: accept raw pointer
